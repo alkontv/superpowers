@@ -1,6 +1,6 @@
 {
-  "name": "superpowers-dev",
-  "description": "Development marketplace for Superpowers core skills library",
+  "name": "alkontv-superpowers",
+  "description": "Форк Superpowers для alkontv: обновления автора приходят только после просмотра (FORK.md)",
   "owner": {
     "name": "Jesse Vincent",
     "email": "jesse@fsck.com"
