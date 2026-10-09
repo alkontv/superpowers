@@ -45,7 +45,8 @@ checks); and a plan so broken that every path forward is a guess. For those,
 stop and ask. When their instructions set an approval boundary, a new
 decision inside it (product behavior or a key technical decision) also goes
 to them: ask, batched with your recommendation, and keep executing the tasks
-that do not depend on it. Rulings are for technical ambiguities only.
+that do not depend on it; inside that boundary, rulings are for technical
+ambiguities only.
 
 ## When to Use
 

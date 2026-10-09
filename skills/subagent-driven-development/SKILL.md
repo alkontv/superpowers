@@ -33,7 +33,8 @@ checks); and a plan so broken that every path forward is a guess. For those,
 stop and ask. When their instructions set an approval boundary, a new
 decision inside it (product behavior or a key technical decision) also goes
 to them: ask, batched with your recommendation, and keep executing the tasks
-that do not depend on it. Rulings are for technical ambiguities only.
+that do not depend on it; inside that boundary, rulings are for technical
+ambiguities only.
 
 ## When to Use
 
@@ -83,7 +84,7 @@ digraph process {
         "R = 5?" [shape=diamond];
         "Adjudicate each open finding" [shape=box];
         "Any load-bearing finding?" [shape=diamond];
-        "Rule and continue; stop only if every path forward is a guess" [shape=box];
+        "Rule and continue; stop only if every path forward is a guess\n(a decision inside their boundary: ask, continue independent tasks)" [shape=box];
         "Park findings in ledger with rulings" [shape=box];
         "Append completion to ledger, mark todo complete" [shape=box];
     }
@@ -114,7 +115,7 @@ digraph process {
     "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
     "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
     "Adjudicate each open finding" -> "Any load-bearing finding?";
-    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
+    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess\n(a decision inside their boundary: ask, continue independent tasks)" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
     "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
     "Append completion to ledger, mark todo complete" -> "More tasks remain?";

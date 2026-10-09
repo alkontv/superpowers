@@ -250,7 +250,7 @@ is the whole process.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea (when your human partner sets the approval boundary — one batched message instead, see that section)
 - Prefer multiple choice questions when possible, but open-ended is fine too
-- Only one question per message - if a topic needs more exploration, break it into multiple questions
+- Only one question per message - if a topic needs more exploration, break it into multiple questions (not when your human partner sets the approval boundary)
 - Focus on understanding: purpose, constraints, success criteria
 
 **Exploring approaches:**

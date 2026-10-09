@@ -57,9 +57,11 @@ branch is integrated (for example: a PR, merged after green checks and
 the final review at the approved revision), follow them and report what
 you did instead of presenting the menu. Discarding the work still
 happens only on their explicit request. This does not apply when the final
-review was a self-review, or when it left findings open (parked or residual
-load-bearing findings, deferred minors marked must-fix before merge): then
-do not integrate — report them and ask.
+review was a self-review, when it left findings open (parked or residual
+load-bearing findings, findings ruled not to fix, deferred minors marked
+must-fix before merge), or when fixes were made after the final review
+without a review of the new state: then do not integrate — report them and
+ask.
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 
