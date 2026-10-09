@@ -56,12 +56,16 @@ If your human partner's instructions already prescribe how a finished
 branch is integrated (for example: a PR, merged after green checks and
 the final review at the approved revision), follow them and report what
 you did instead of presenting the menu. Discarding the work still
-happens only on their explicit request. This does not apply when the final
-review was a self-review, when it left findings open (parked or residual
-load-bearing findings, findings ruled not to fix, deferred minors marked
-must-fix before merge), or when fixes were made after the final review
-without a review of the new state: then do not integrate — report them and
-ask.
+happens only on their explicit request. When the final review was a
+self-review, left findings open (parked or residual load-bearing findings,
+findings ruled not to fix, deferred minors marked must-fix before merge),
+or fixes were made after it without a review of the new state, do not
+integrate yet: fix the technical findings, get an independent review of the
+new revision (the author's self-review does not count), send minors to
+their backlog as their instructions say, then integrate by their rules.
+Ask them only for a new decision inside their approval boundary or a real
+blocker (no independent reviewer available, the same finding surviving
+repeated fix rounds).
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 

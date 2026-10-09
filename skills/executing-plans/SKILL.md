@@ -261,8 +261,9 @@ yourself against the package, as a separate pass after the last task's
 ledger line. Write `Final review: self-review (no subagent tool)` to the
 ledger, and say so in your final message: a self-review by the author is
 weaker than a fresh reviewer, and your human partner decides whether that
-is enough before merge — even when their instructions otherwise prescribe
-integration, the branch waits for their answer.
+is enough before merge. When their instructions require an independent
+review, a self-review does not satisfy it: the branch is not integrated
+until an independent reviewer has checked it, or they say otherwise.
 
 Sort the findings before you act on any of them. The reviewer's severity
 labels are advice; the gate is yours. Its "Declined to judge" list is
@@ -294,6 +295,17 @@ re-review: it would re-read a diff whose covering tests already answer
 A finding you decide not to fix is a ruling — `Final: Ruling: <finding> —
 <why the code stands> — <cost if wrong>` — and reaches your human partner
 in the rulings list. There is no second fix pass.
+
+**When your human partner's instructions require a review of every change
+made after a review**, they replace the single-pass rule above. After the
+fix pass, get an independent scoped review of the new revision — a fresh
+reviewer, never your own read; without a subagent tool that is a stop.
+Technical findings from it are fixed the same way and the new revision is
+reviewed again, until the review is clean; a technical finding is fixed,
+not ruled away. Minors go to their backlog as their instructions say.
+Only a new decision inside their approval boundary, or a real blocker (no
+independent reviewer available, the same finding surviving two fix
+rounds), goes to them.
 
 ## Finish
 

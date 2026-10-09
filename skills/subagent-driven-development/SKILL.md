@@ -473,9 +473,15 @@ Then run exactly one scoped re-review of the fix wave
 Adjudicate any residual findings as in the task loop's breaker: park with
 rulings, or rule on the load-bearing ones and ledger what you decided. Only the stops above stop you here. There is no second fix wave —
 residual load-bearing findings surface to your human partner when
-finishing-a-development-branch presents the options — or, when their
-instructions skip the menu, in the report before any merge, and the branch
-is not integrated until they answer.
+finishing-a-development-branch presents the options.
+
+When your human partner's instructions require a review of every change
+made after a review, they replace the single-wave rule: residual technical
+findings get another fix dispatch and another scoped re-review of the new
+revision, until the review is clean; minors go to their backlog as their
+instructions say. Only a new decision inside their approval boundary, or a
+real blocker (no reviewer available, the same finding surviving two fix
+waves), goes to them before any merge.
 
 ## Finish
 
