@@ -62,7 +62,7 @@ docs/superpowers/plans/YYYY-MM-DD-<feature-name>/
 ```
 
 - **README.md is the only place for what more than one task needs:** decisions, contracts between tasks, constraints. A task links to the section it relies on (`[Contracts](../README.md#contracts)`) instead of repeating it.
-- **Groups table in README.md:** group, its tasks as links to task files, risk (`normal` or `high`), what it depends on. A group is a block one implementer does in one go; files are not agents.
+- **Groups table in README.md:** group, its tasks as links to task files, risk level with a one-line reason (the levels your human partner's execution workflow uses, e.g. `normal` / `complex` / `high`; when their instructions derive models from risk, the plan names no models), what it depends on. A group is a block one implementer does in one go; files are not agents.
 - **review.md holds only what a reviewer checks beyond the tasks' own tests.** Implementers do not read it, so anything that changes how the code must be written belongs in README.md or in the task. Each Review Focus line still adds its test to the owning task.
 - **Each task file works together with README.md alone:** Files, Interfaces with exact signatures, steps, verification command. It does not depend on reading other task files; their names and types reach it through Interfaces.
 - **Links are relative Markdown links, not wikilinks,** so they work on GitHub, in Obsidian and for agents.
