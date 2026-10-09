@@ -14,7 +14,7 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the ones named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
 ambiguities, plan defects, a cap you would have asked to exceed — decide
@@ -24,12 +24,16 @@ judgment settles what neither answers. Record every decision in the ledger as
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
 
-Four things stop you, and only these: an irreversible or destructive
+These stop you, and only these: an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
 publish), unless your human partner's instructions already authorize it (for
-example, merging a PR after green checks and the final review); and a plan so broken that every path forward is a guess. For those,
-stop and ask.
+example, merging a PR at the revision the final review approved, after green
+checks); and a plan so broken that every path forward is a guess. For those,
+stop and ask. When their instructions set an approval boundary, a new
+decision inside it (product behavior or a key technical decision) also goes
+to them: ask, batched with your recommendation, and keep executing the tasks
+that do not depend on it. Rulings are for technical ambiguities only.
 
 ## When to Use
 
@@ -466,10 +470,11 @@ Then run exactly one scoped re-review of the fix wave
 (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
 [re-review-prompt.md](re-review-prompt.md)).
 Adjudicate any residual findings as in the task loop's breaker: park with
-rulings, or rule on the load-bearing ones and ledger what you decided. Only
-the four classes above stop you here. There is no second fix wave —
+rulings, or rule on the load-bearing ones and ledger what you decided. Only the stops above stop you here. There is no second fix wave —
 residual load-bearing findings surface to your human partner when
-finishing-a-development-branch presents the options.
+finishing-a-development-branch presents the options — or, when their
+instructions skip the menu, in the report before any merge, and the branch
+is not integrated until they answer.
 
 ## Finish
 

@@ -27,6 +27,9 @@ recognize and correct, grounded in what they want to accomplish.
    relevant constraints, and success criteria in a short note your partner
    can assess. Separate what they said from assumptions. Invite correction
    and incorporate their answer before treating this as the design brief.
+   When they set the approval boundary, this note goes into the one message
+   with the open decisions; with none open, state it and go on — they can
+   correct it at any time.
 3. **Carry intent into the design.** Preserve the agreed understanding in
    the selected path's design artifact: the written spec for architectural
    work, or the in-chat design/probe for bounded work and spikes. Check
@@ -74,9 +77,12 @@ plans. Then their boundary replaces the approval steps of every path:
   consequences — together in one message. A decision already agreed, or
   set explicitly in their request, is not asked again. While you wait,
   keep doing the parts that do not depend on the answers.
-- A request to build, implement or fix authorizes the whole cycle within
-  its scope. Once the open decisions are answered, or if there are none,
-  go on without a separate go-ahead. Spike: investigate. Bounded: state
+- The understanding note, the clarifying questions and the design-section
+  check-ins are folded into that one message. With no decision open,
+  state your understanding and go on; they can correct it at any time.
+- When their instructions say a request to build, implement or fix
+  authorizes the whole cycle within its scope: once the open decisions are
+  answered, or if there are none, go on without a separate go-ahead. Spike: investigate. Bounded: state
   the short design in chat and implement it. Architectural: write the
   spec, self-review it, have it technically reviewed if their
   instructions call for that, then writing-plans, implementation and
@@ -148,8 +154,9 @@ complete that path's reviews before implementation.
 Classify first, announce the path, then create a task for each item on
 your path and complete them in order. When your human partner sets the
 approval boundary, the approval items below (Spike 3, Bounded 4,
-Architectural 5 and 8) follow "When Your Human Partner Sets the Approval
-Boundary" instead.
+Architectural 5 and 8) and the one-at-a-time questions (Bounded 2,
+Architectural 3) follow "When Your Human Partner Sets the Approval
+Boundary" instead: one batched message, only the open decisions.
 
 **Spike:**
 1. **Explore project context** — enough to frame the probe
@@ -241,7 +248,7 @@ is the whole process.
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
+- For appropriately-scoped projects, ask questions one at a time to refine the idea (when your human partner sets the approval boundary — one batched message instead, see that section)
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
@@ -257,7 +264,7 @@ is the whole process.
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
+- Ask after each section whether it looks right so far (not when your human partner sets the approval boundary)
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 

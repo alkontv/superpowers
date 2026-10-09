@@ -36,12 +36,16 @@ as `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
 going. Deviating from the plan without a ledgered ruling is a decision made
 in secret.
 
-Four things stop you, and only these: an irreversible or destructive
+These stop you, and only these: an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
 publish), unless your human partner's instructions already authorize it (for
-example, merging a PR after green checks and the final review); and a plan so broken that every path forward is a guess. For
-those, stop and ask.
+example, merging a PR at the revision the final review approved, after green
+checks); and a plan so broken that every path forward is a guess. For those,
+stop and ask. When their instructions set an approval boundary, a new
+decision inside it (product behavior or a key technical decision) also goes
+to them: ask, batched with your recommendation, and keep executing the tasks
+that do not depend on it. Rulings are for technical ambiguities only.
 
 ## When to Use
 
@@ -256,7 +260,8 @@ yourself against the package, as a separate pass after the last task's
 ledger line. Write `Final review: self-review (no subagent tool)` to the
 ledger, and say so in your final message: a self-review by the author is
 weaker than a fresh reviewer, and your human partner decides whether that
-is enough before merge.
+is enough before merge — even when their instructions otherwise prescribe
+integration, the branch waits for their answer.
 
 Sort the findings before you act on any of them. The reviewer's severity
 labels are advice; the gate is yours. Its "Declined to judge" list is
@@ -318,7 +323,7 @@ Use superpowers:finishing-a-development-branch.
 | "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. Where the project's verification policy sets the scope (targeted tests per step, full suite through a queue or CI at the end), that policy is the contract. |
 | "The plan is wrong here, I'll just do the right thing" | Do the right thing and ledger the ruling. Unledgered deviation is a decision made in secret. |
 | "I'll write the ledger lines after a few tasks" | Compaction does not wait for a convenient moment. One line per task, in the same message as the commit. |
-| "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the four stops stop you. |
+| "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the stops named above stop you. |
 | "I read my own diff carefully; the final reviewer is redundant" | Same author, same blind spots. The reviewer is the only fresh context this run buys. |
 | "Tests should pass, the change was trivial" | "Should" is not evidence. The contract requires the command and its output. |
 | "Subagents are slow and expensive, I'll skip the final review too" | Inline already removed the per-task reviewers. One review of the whole branch is the floor, not the ceiling. |

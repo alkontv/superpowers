@@ -7,7 +7,7 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Overview
 
-**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Detect environment → Present options (or follow the integration your human partner's instructions prescribe) → Execute choice → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -56,7 +56,10 @@ If your human partner's instructions already prescribe how a finished
 branch is integrated (for example: a PR, merged after green checks and
 the final review at the approved revision), follow them and report what
 you did instead of presenting the menu. Discarding the work still
-happens only on their explicit request.
+happens only on their explicit request. This does not apply when the final
+review was a self-review, or when it left findings open (parked or residual
+load-bearing findings, deferred minors marked must-fix before merge): then
+do not integrate — report them and ask.
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 
@@ -85,7 +88,8 @@ Present the menu exactly as written — concise, with every option coming
 from the list above. Discarding the work happens only in response to your
 human partner explicitly asking for it (see "If your human partner asks to
 discard the work" below). Wait for their answer; the integration decision
-is theirs.
+is theirs, unless their instructions already prescribe integration (see the
+start of this step).
 
 ## Step 5: Execute Choice
 
@@ -220,7 +224,7 @@ place. If your platform provides a workspace-exit tool, use it.
 | Excuse | Reality |
 |--------|---------|
 | "Tests passed earlier this session" | Run the suite on the tree you are about to integrate. A green run only proves the tree it ran on. |
-| "They obviously want it merged" | Integration is your human partner's decision. Present the menu and wait. |
+| "They obviously want it merged" | Integration is your human partner's decision. Present the menu and wait — unless their instructions already prescribe integration (Step 4). |
 | "They seem done with this feature — I'll offer to discard it" | The menu is complete as written. Discard happens only when your human partner asks for it in so many words. |
 | "'Yeah, get rid of it' counts as confirmation" | Only the typed word `discard` authorizes deletion. |
 | "The PR is up, so the worktree is clutter now" | PR feedback gets fixed in that worktree. It stays until the work lands. |
