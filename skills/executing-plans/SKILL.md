@@ -277,7 +277,7 @@ because the spec was silent has graded the spec, not the effect. Then:
 Fix the Critical and Important findings yourself — you are the
 implementer here — in ONE pass. Each fix is verified by TDD, not by a
 second reviewer: write the test that reproduces the finding, watch it
-fail, make it pass, then run the whole suite. Record each in the ledger as
+fail, make it pass, then run the whole suite (or the scope and mechanism the project's verification policy sets, if it defines one). Record each in the ledger as
 `Final: fixed <finding> — <test name> RED→GREEN, suite <N>/<N>`. A fix
 without a test that failed first is not verified; a suite that is not
 green after the pass means the pass is not over. Do not dispatch a
@@ -309,7 +309,7 @@ Use superpowers:finishing-a-development-branch.
 |--------|---------|
 | "I remember what Task N says" | You remember a summary. The brief has the exact values. Read it. |
 | "The plan's code is right, skip watching the test fail" | A test you never saw fail proves nothing. It is one step. Run it. |
-| "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. |
+| "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. Where the project's verification policy sets the scope (targeted tests per step, full suite through a queue or CI at the end), that policy is the contract. |
 | "The plan is wrong here, I'll just do the right thing" | Do the right thing and ledger the ruling. Unledgered deviation is a decision made in secret. |
 | "I'll write the ledger lines after a few tasks" | Compaction does not wait for a convenient moment. One line per task, in the same message as the commit. |
 | "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the four stops stop you. |

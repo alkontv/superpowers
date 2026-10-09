@@ -183,6 +183,8 @@ implementation.
 
 ## Model Selection
 
+If your human partner's or the project's instructions define a model policy (which model and effort for which role), follow it; the defaults below apply only when none is defined.
+
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
 **Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
