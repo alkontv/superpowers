@@ -107,7 +107,8 @@ override it:
   sentences to a few short paragraphs), and STOP. Implementation
   starts only after your human partner says yes to that design — a
   bounded task's approval is as hard a gate as an architectural
-  one. No spec file, no implementation plan document.
+  one (unless your human partner sets the approval boundary — see
+  that section). No spec file, no implementation plan document.
 - **Architectural** — new projects, new subsystems, changes that
   restructure how components fit together or alter interfaces others
   depend on. Follow the full process: questions, approaches, sectioned
@@ -120,7 +121,8 @@ stop, say so, and step up. Nothing downgrades mid-task.
 ## Anti-Pattern: "Too Simple To Need Approval"
 
 Every path ends with your human partner approving the required design
-before implementation. A bounded change may need only two sentences in
+before implementation — or, when they set the approval boundary, with
+their answers to the decisions inside it. A bounded change may need only two sentences in
 chat. A new todo-list project is architectural and requires the written
 spec and planning handoffs. Scale the artifact to the selected path;
 complete that path's reviews before implementation.
@@ -131,7 +133,7 @@ complete that path's reviews before implementation.
 |---------|---------|
 | "This is too simple to need a design" | Follow the selected path: a bounded change gets a short chat design; an architectural change gets the written spec and planning handoffs. |
 | "I'll call it bounded and skip the spec" | Reaching for a label to skip work IS the doubt — take the heavier path. |
-| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes. |
+| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes — unless their approval boundary and authorization to execute already cover it. |
 | "I understand this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. A new project has no existing flow — it is architectural. |
 | "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
 | "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
@@ -185,7 +187,7 @@ digraph brainstorming {
     "Ask clarifying questions" [shape=box];
     "Propose 2-3 approaches" [shape=box];
     "Present design sections" [shape=box];
-    "User approves design?" [shape=diamond];
+    "User approves design?" [shape=diamond, label="User approves design?\n(or: decisions inside\ntheir boundary answered)"];
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
