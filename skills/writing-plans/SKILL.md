@@ -77,7 +77,7 @@ A plan executed in one group stays one file.
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Execute this plan with the method your human partner's instructions prescribe (for example their own workflow for a plan executed group by group). Otherwise, REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task; both take a single-file plan, not a folder. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -206,6 +206,8 @@ to read (for a folder plan, link its README.md). If their instructions name thei
 them to review the plan and confirm it captures what they want; wait for that
 review before implementation, then use the preserved method. Otherwise, ask
 them to review the plan and choose an execution method before implementation.
+
+When their instructions set the scale of execution, follow it: a plan executed group by group goes to their own workflow, while a small task or a single block is not turned into a full workflow (for example: a small edit in this session, one block to one implementer plus a review). A folder plan goes only to a method that reads folders; the generic helpers of subagent-driven-development and executing-plans (`sdd-workspace`, `task-brief`) expect one plan file. If their instructions say they do not read or approve plans, do not ask them to review this one: bring them only decisions inside their approval boundary and start.
 
 **When no execution method has already been supplied:**
 

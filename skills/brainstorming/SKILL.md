@@ -53,7 +53,37 @@ feature scope does not approve artifacts that do not exist yet. Resume
 at the earliest incomplete stage; do not turn one approval into permission
 to skip the rest of the selected path. Read-only project exploration is
 allowed while those prerequisites remain incomplete.
+
+These approval steps are the default. When your human partner's
+instructions set the approval boundary themselves, follow
+"When Your Human Partner Sets the Approval Boundary" below instead.
 </HARD-GATE>
+
+## When Your Human Partner Sets the Approval Boundary
+
+Some partners say in their instructions which decisions need their
+approval — for example product decisions and key technical ones (stack,
+platforms, significant architecture, external services, anything that
+affects cost, privacy or future development) — and that they do not
+read or approve technical specs and plans. Then their boundary replaces
+the approval steps of every path:
+
+- Bring them only the decisions inside that boundary, in plain language,
+  each with the options and your recommendation, together in one
+  message. Wait for those answers; keep exploring read-only meanwhile.
+- Spike: investigate once the question is clear, unless the probe itself
+  needs one of those decisions.
+- Bounded: if they authorized execution and no such decision is open,
+  state the short design in chat and proceed; otherwise wait for the
+  answers first.
+- Architectural: once those decisions are agreed, write the spec,
+  self-review it, have it reviewed if their instructions call for it,
+  and go on to writing-plans — no approval of the spec or the plan.
+- A decision inside the boundary that appears mid-task stops the work
+  that depends on it until they answer. The ratchet still upgrades the
+  path; it does not add document approvals.
+
+An answer approves the decision asked, not anything beyond it.
 
 ## Three Paths
 
@@ -110,7 +140,10 @@ complete that path's reviews before implementation.
 ## Checklist
 
 Classify first, announce the path, then create a task for each item on
-your path and complete them in order.
+your path and complete them in order. When your human partner sets the
+approval boundary, the approval items below (Spike 3, Bounded 4,
+Architectural 5 and 8) follow "When Your Human Partner Sets the Approval
+Boundary" instead.
 
 **Spike:**
 1. **Explore project context** — enough to frame the probe
@@ -254,7 +287,7 @@ After writing the spec document, look at it with fresh eyes:
 Fix any issues inline. No need to re-review — just fix and move on.
 
 **User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
+Skip this gate when your human partner's instructions say they do not approve specs (see "When Your Human Partner Sets the Approval Boundary"). Otherwise, after the spec review loop passes, ask the user to review the written spec before proceeding:
 
 > "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
