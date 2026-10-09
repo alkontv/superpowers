@@ -60,12 +60,16 @@ happens only on their explicit request. When the final review was a
 self-review, left findings open (parked or residual load-bearing findings,
 findings ruled not to fix, deferred minors marked must-fix before merge),
 or fixes were made after it without a review of the new state, do not
-integrate yet: fix the technical findings, get an independent review of the
-new revision (the author's self-review does not count), send minors to
-their backlog as their instructions say, then integrate by their rules.
-Ask them only for a new decision inside their approval boundary or a real
-blocker (no independent reviewer available, the same finding surviving
-repeated fix rounds).
+integrate yet:
+
+- If their instructions also require a review of every change made after a
+  review: fix the technical findings (a minor marked must-fix before merge
+  counts as one), re-run Step 1 on the new revision, get an independent
+  review of it (the author's self-review does not count), send the other
+  minors to their backlog as their instructions say, then integrate by
+  their rules. Ask them only for a new decision inside their approval
+  boundary or a real blocker (no independent reviewer available, or the same finding still open after the fix was escalated to a fresh implementer or a more capable model).
+- Otherwise: report them and ask.
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 

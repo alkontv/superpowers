@@ -89,7 +89,7 @@ digraph process {
     "Setup: worktree, workspace + ledger, read plan + spec, pre-flight scan" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Final whole-branch review (fresh reviewer if you have one)" [shape=box];
-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" [shape=box];
+    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
@@ -105,8 +105,8 @@ digraph process {
     "task-done: run tests, ledger the result; mark todo complete" -> "More tasks remain?";
     "More tasks remain?" -> "task-start: brief + BASE; read the brief" [label="yes"];
     "More tasks remain?" -> "Final whole-branch review (fresh reviewer if you have one)" [label="no"];
-    "Final whole-branch review (fresh reviewer if you have one)" -> "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger";
-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" -> "Final review clean: delete this plan's workspace";
+    "Final whole-branch review (fresh reviewer if you have one)" -> "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)";
+    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)" -> "Final review clean: delete this plan's workspace";
     "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
@@ -262,7 +262,7 @@ ledger line. Write `Final review: self-review (no subagent tool)` to the
 ledger, and say so in your final message: a self-review by the author is
 weaker than a fresh reviewer, and your human partner decides whether that
 is enough before merge. When their instructions require an independent
-review, a self-review does not satisfy it: the branch is not integrated
+review, or a review of every change made after a review, a self-review does not satisfy it: the branch is not integrated
 until an independent reviewer has checked it, or they say otherwise.
 
 Sort the findings before you act on any of them. The reviewer's severity
@@ -290,22 +290,25 @@ fail, make it pass, then run the whole suite (or the scope and mechanism the pro
 without a test that failed first is not verified; a suite that is not
 green after the pass means the pass is not over. Do not dispatch a
 re-review: it would re-read a diff whose covering tests already answer
-"addressed" and whose suite run already answers "broke nothing".
+"addressed" and whose suite run already answers "broke nothing" (unless
+their instructions require a review of every change made after a review —
+see below).
 
 A finding you decide not to fix is a ruling — `Final: Ruling: <finding> —
 <why the code stands> — <cost if wrong>` — and reaches your human partner
 in the rulings list. There is no second fix pass.
 
 **When your human partner's instructions require a review of every change
-made after a review**, they replace the single-pass rule above. After the
+made after a review**, they replace the single-pass and no-re-review rules above. After the
 fix pass, get an independent scoped review of the new revision — a fresh
 reviewer, never your own read; without a subagent tool that is a stop.
 Technical findings from it are fixed the same way and the new revision is
 reviewed again, until the review is clean; a technical finding is fixed,
 not ruled away. Minors go to their backlog as their instructions say.
-Only a new decision inside their approval boundary, or a real blocker (no
-independent reviewer available, the same finding surviving two fix
-rounds), goes to them.
+Only a new decision inside their approval boundary, or a real
+blocker (no independent reviewer available, or the same finding still open
+after the fix was escalated to a fresh implementer or a more capable model),
+goes to them.
 
 ## Finish
 

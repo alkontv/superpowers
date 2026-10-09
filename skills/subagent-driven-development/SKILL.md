@@ -92,7 +92,7 @@ digraph process {
     "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
+    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
@@ -121,8 +121,8 @@ digraph process {
     "Append completion to ledger, mark todo complete" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
-    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
+    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)";
+    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)" -> "Final review clean: delete this plan's workspace";
     "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
@@ -478,10 +478,12 @@ finishing-a-development-branch presents the options.
 When your human partner's instructions require a review of every change
 made after a review, they replace the single-wave rule: residual technical
 findings get another fix dispatch and another scoped re-review of the new
-revision, until the review is clean; minors go to their backlog as their
-instructions say. Only a new decision inside their approval boundary, or a
-real blocker (no reviewer available, the same finding surviving two fix
-waves), goes to them before any merge.
+revision, until the review is clean; a technical finding is fixed, not
+parked or ruled away; minors go to their backlog as their instructions say.
+Only a new decision inside their approval boundary, or a real
+blocker (no independent reviewer available, or the same finding still open
+after the fix was escalated to a fresh implementer or a more capable model),
+goes to them before any merge.
 
 ## Finish
 
