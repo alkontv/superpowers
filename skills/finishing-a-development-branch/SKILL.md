@@ -52,6 +52,12 @@ Confirm before merging: merging into the wrong base is expensive to undo.
 
 ## Step 4: Present Options
 
+If your human partner's instructions already prescribe how a finished
+branch is integrated (for example: a PR, merged after green checks and
+the final review at the approved revision), follow them and report what
+you did instead of presenting the menu. Discarding the work still
+happens only on their explicit request.
+
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 
 ```

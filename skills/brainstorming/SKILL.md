@@ -9,7 +9,8 @@ Help turn ideas into fully formed designs and specs through natural collaborativ
 
 Start by classifying how much process the request needs, then work
 through your path: understand the context, refine the idea, present a
-design, and get your human partner's approval.
+design, and get your human partner's approval — or, when they set the
+approval boundary, their answers to the open decisions inside it.
 
 ## Establish Shared Understanding
 
@@ -62,26 +63,29 @@ instructions set the approval boundary themselves, follow
 ## When Your Human Partner Sets the Approval Boundary
 
 Some partners say in their instructions which decisions need their
-approval — for example product decisions and key technical ones (stack,
-platforms, significant architecture, external services, anything that
-affects cost, privacy or future development) — and that they do not
-read or approve technical specs and plans. Then their boundary replaces
-the approval steps of every path:
+approval — for example product behavior and key technical decisions
+(stack, platforms, significant architecture, external services, money,
+privacy) — and that they do not read or approve technical specs and
+plans. Then their boundary replaces the approval steps of every path:
 
-- Bring them only the decisions inside that boundary, in plain language,
-  each with the options and your recommendation, together in one
-  message. Wait for those answers; keep exploring read-only meanwhile.
-- Spike: investigate once the question is clear, unless the probe itself
-  needs one of those decisions.
-- Bounded: if they authorized execution and no such decision is open,
-  state the short design in chat and proceed; otherwise wait for the
-  answers first.
-- Architectural: once those decisions are agreed, write the spec,
-  self-review it, have it reviewed if their instructions call for it,
-  and go on to writing-plans — no approval of the spec or the plan.
-- A decision inside the boundary that appears mid-task stops the work
-  that depends on it until they answer. The ratchet still upgrades the
-  path; it does not add document approvals.
+- Bring them only the decisions inside that boundary that are still
+  open: briefly and in plain language — what the user will get, the
+  significant decisions with the options and your recommendation, the
+  consequences — together in one message. A decision already agreed, or
+  set explicitly in their request, is not asked again. While you wait,
+  keep doing the parts that do not depend on the answers.
+- A request to build, implement or fix authorizes the whole cycle within
+  its scope. Once the open decisions are answered, or if there are none,
+  go on without a separate go-ahead. Spike: investigate. Bounded: state
+  the short design in chat and implement it. Architectural: write the
+  spec, self-review it, have it technically reviewed if their
+  instructions call for that, then writing-plans, implementation and
+  verification — no approval of the spec or the plan.
+- A request for research, a spike or a plan only: do exactly that and
+  stop.
+- A new decision inside the boundary that appears mid-task goes back to
+  them; keep doing the independent parts meanwhile. The ratchet still
+  upgrades the path; it does not add document approvals.
 
 An answer approves the decision asked, not anything beyond it.
 
@@ -133,7 +137,7 @@ complete that path's reviews before implementation.
 |---------|---------|
 | "This is too simple to need a design" | Follow the selected path: a bounded change gets a short chat design; an architectural change gets the written spec and planning handoffs. |
 | "I'll call it bounded and skip the spec" | Reaching for a label to skip work IS the doubt — take the heavier path. |
-| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes — unless their approval boundary and authorization to execute already cover it. |
+| "It's bounded and the design is obvious — I'll start while they read it" | The gate is the approval, not the design's length. Present, then stop until you hear yes — unless they set the approval boundary, asked you to implement, and no decision inside it is open. |
 | "I understand this kind of app, so it's bounded" | Bounded measures the repo, not your familiarity. A new project has no existing flow — it is architectural. |
 | "The spike works, so I'll keep the code" | A spike's output is an answer. Keeping the code is a new request — classify it. |
 | "It grew, but I'm almost done — no need to re-classify" | Hidden complexity upgrades the path mid-task. Stop and say so. |
@@ -180,7 +184,7 @@ digraph brainstorming {
     "Present question + probe (2-3 sentences)" [shape=box];
     "Ask clarifying questions (bounded)" [shape=box];
     "Present short design in chat" [shape=box];
-    "Human approves?" [shape=diamond];
+    "Human approves?" [shape=diamond, label="Human approves?\n(or: open decisions inside\ntheir boundary answered)"];
     "Investigate; report recommendation" [shape=doublecircle];
     "Implement via normal workflow (no plan doc)" [shape=doublecircle];
     "Explore project context" [shape=box];
@@ -190,7 +194,7 @@ digraph brainstorming {
     "User approves design?" [shape=diamond, label="User approves design?\n(or: decisions inside\ntheir boundary answered)"];
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
-    "User reviews spec?" [shape=diamond];
+    "User reviews spec?" [shape=diamond, label="User reviews spec?\n(skipped when they do not\napprove specs)"];
     "Invoke writing-plans skill" [shape=doublecircle];
     "Hidden complexity? Upgrade path" [shape=box];
 
@@ -219,7 +223,8 @@ digraph brainstorming {
 **Terminal states are path-bound.** Architectural: the ONLY skill you
 invoke after brainstorming is writing-plans — never frontend-design,
 mcp-builder, or any other implementation skill. Bounded: after
-approval, implementation proceeds directly through the normal
+approval (or, within their approval boundary, once no decision is open),
+implementation proceeds directly through the normal
 development workflow; no plan document. Spike: the terminal state is a
 reported recommendation.
 
