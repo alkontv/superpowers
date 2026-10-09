@@ -182,7 +182,7 @@ Confirm:
 
 **Other tests fail?** Fix now.
 
-**"Other tests" means the project's suite, not just your file.** A
+**"Other tests" means the project's suite, not just your file.** (If the project's or user's instructions (CLAUDE.md or equivalent) define a verification policy — for example targeted tests per task and the full suite only at the end of a branch, or heavy suites run through a queue — follow that policy for when and how the full suite runs. It never relaxes the red-green cycle for your own change, and anything you did not run goes in your report as not run.) A
 green run of the test you wrote is not a green suite. Before you call
 the change done, run the project's test command (bare `pytest`,
 `npm test`, `cargo test` — whatever the repo uses) even when your task
@@ -298,7 +298,7 @@ Before marking work complete:
 - [ ] Watched each test fail before implementing
 - [ ] Each test failed for expected reason (feature missing, not typo)
 - [ ] Wrote minimal code to pass each test
-- [ ] All tests pass
+- [ ] All tests pass (scope per the project's verification policy, if it defines one)
 - [ ] Output pristine (no errors, warnings)
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered

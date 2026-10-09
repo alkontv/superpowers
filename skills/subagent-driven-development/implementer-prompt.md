@@ -45,7 +45,10 @@ Subagent (general-purpose):
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
     While iterating, run the focused test for what you're changing; run the
-    full suite once before committing, not after every edit.
+    full suite once before committing, not after every edit. If the project's
+    instructions define a different verification scope (for example targeted tests
+    per task and the full suite at the end of the branch), follow them and say in
+    your report what you did not run.
 
     ## You Do Not Dispatch Subagents
 

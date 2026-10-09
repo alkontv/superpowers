@@ -202,7 +202,7 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 ## Execution Handoff
 
 After saving and self-reviewing the plan, link it for your human partner
-to read (for a folder plan, link its README.md). If they have already explicitly supplied an execution method, ask
+to read (for a folder plan, link its README.md). If their instructions name their own plan-execution workflow or command, offer it alongside the approaches below. If they have already explicitly supplied an execution method, ask
 them to review the plan and confirm it captures what they want; wait for that
 review before implementation, then use the preserved method. Otherwise, ask
 them to review the plan and choose an execution method before implementation.

@@ -19,13 +19,15 @@ NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 
 If you haven't run the verification command in this message, you cannot claim it passes.
 
+One exception: when the project's instructions accept recorded verification evidence — commit hash, command, result, environment and log — that evidence counts as fresh for that exact revision. Any change after it means re-running the affected checks.
+
 ## The Gate Function
 
 ```
 BEFORE claiming any status or expressing satisfaction:
 
 1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
+2. RUN: Execute the FULL command (fresh, complete) — or cite recorded evidence for this exact revision where the project's instructions allow it
 3. READ: Full output, check exit code, count failures
 4. VERIFY: Does output confirm the claim?
    - If NO: State actual status with evidence
