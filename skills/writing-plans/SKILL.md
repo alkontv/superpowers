@@ -94,6 +94,8 @@ owns the code, in that task's own step style.]
 ````markdown
 ### Task N: [Component Name]
 
+**Risk:** normal | complex | high — one-line reason
+
 **Files:**
 - Create: `exact/path/to/file.py`
 - Modify: `exact/path/to/existing.py:123-145`
@@ -137,6 +139,8 @@ git commit -m "feat: add specific feature"
 ```
 ````
 
+When your partner's instructions choose models by task risk, every task carries the **Risk:** line in their levels and the plan names no models.
+
 ## What a Step Contains
 
 A step is done when the implementer can write exactly one reasonable thing
@@ -176,7 +180,13 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
+## Plan Review
+
+A plan with more than five tasks, or with any task at `complex` or `high`, gets exactly one round of independent review after the self-review: one fresh reviewer (`alkontv-dev:reviewer` when that agent type is available; model and effort from your partner's model table, plan-review row) reads the plan against the spec and the code. Findings that hit correctness, interfaces, missing tasks or test sufficiency are fixed inline; minor ones at the author's discretion. There is no second round. Smaller plans: self-review only.
+
 ## Execution Handoff
+
+If your partner's instructions prescribe the execution method, do not ask them to choose one: link the plan with a short summary — tasks with their risks, the key decisions, what the plan review changed — name the method, and wait for their go-ahead. If they asked only for the plan, stop after it.
 
 After saving and self-reviewing the plan, link it for your human partner
 to read. If they have already explicitly supplied an execution method, ask

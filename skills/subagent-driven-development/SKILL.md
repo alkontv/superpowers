@@ -14,7 +14,7 @@ Execute plan by dispatching a fresh implementer subagent per task, a task review
 **Narration:** between tool calls, narrate at most one short line — the
 ledger and the tool results carry the record.
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the four named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are the ones named below, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
 
 **Rulings, not stalls.** A running plan does not wait on a human. Conflicts,
 ambiguities, plan defects, a cap you would have asked to exceed — decide
@@ -24,10 +24,12 @@ judgment settles what neither answers. Record every decision in the ledger as
 going. A wrong ruling costs rework your human partner can see and undo; a
 session parked on a question costs their whole day and buys nothing.
 
-Four things stop you, and only these: an irreversible or destructive
+These stop you, and only these: an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
-publish); and a plan so broken that every path forward is a guess. For those,
+publish), unless your human partner's instructions already authorize it (for
+example, merging a PR at the revision the final review approved, after green
+checks); and a plan so broken that every path forward is a guess. For those,
 stop and ask.
 
 ## When to Use
@@ -86,7 +88,7 @@ digraph process {
     "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
+    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
@@ -115,8 +117,8 @@ digraph process {
     "Append completion to ledger, mark todo complete" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
-    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
-    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
+    "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)";
+    "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)" -> "Final review clean: delete this plan's workspace";
     "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
@@ -182,6 +184,10 @@ Task 1. The review loop remains the net for conflicts that only emerge from
 implementation.
 
 ## Model Selection
+
+- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Risk:** line, task reviewers, re-reviewers and the final reviewer by their rows; never use a model their instructions forbid. The tiers below apply only when there is no such table.
+- **Agent types:** when `alkontv-dev:developer` and `alkontv-dev:reviewer` are available, dispatch implementers and fix rounds as `alkontv-dev:developer` and every reviewer (task, re-review, final) as `alkontv-dev:reviewer`: their narrow tool sets start with about half the context.
+- **Rulings reach the ledger:** before marking a task complete, copy every `Ruling:` line from the implementer's return or report file into the ledger, so "Rulings I made" at Finish includes them.
 
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
@@ -449,7 +455,7 @@ The final whole-branch review gets a package too: run
 branch started from, e.g. `git merge-base main HEAD`) and include the
 printed path in the final review dispatch, so the final reviewer reads
 one file instead of re-deriving the branch diff with git commands. Dispatch
-on the most capable available model (see Model Selection), using
+on the model your partner's table gives the final branch review (the most capable available model when there is no table; see Model Selection), using
 superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
 the ledger's deferred-minor and parked lines so it can triage which must be
@@ -463,10 +469,18 @@ Then run exactly one scoped re-review of the fix wave
 (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
 [re-review-prompt.md](re-review-prompt.md)).
 Adjudicate any residual findings as in the task loop's breaker: park with
-rulings, or rule on the load-bearing ones and ledger what you decided. Only
-the four classes above stop you here. There is no second fix wave —
+rulings, or rule on the load-bearing ones and ledger what you decided. Only the stops above stop you here. There is no second fix wave —
 residual load-bearing findings surface to your human partner when
 finishing-a-development-branch presents the options.
+
+When your human partner's instructions require a review of every change
+made after a review, they replace the single-wave rule: residual technical
+findings get another fix dispatch and another scoped re-review of the new
+revision, until the review is clean; a technical finding is fixed, not
+parked or ruled away; minors go to their backlog as their instructions say.
+Only a real blocker (no independent reviewer available, or the same finding still open
+after the fix was escalated to a fresh implementer or a more capable model),
+goes to them before any merge.
 
 ## Finish
 
@@ -482,7 +496,13 @@ made in secret.
 When the final whole-branch review is clean and its fixes are merged,
 delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
-alone.
+alone. Before deleting, check whether your final message, the ledger or
+a report cites a file inside the workspace as verification evidence
+(test output, run logs); the ledger counts as evidence too. Move those
+files, and copy the ledger with them, to the location your human
+partner's instructions or the project's check scripts use for logs and
+update the cited paths; if there is no such location, keep the workspace
+and say so.
 
 Use superpowers:finishing-a-development-branch.
 
