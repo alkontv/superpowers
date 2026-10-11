@@ -36,11 +36,13 @@ as `Ruling: <what you decided> — <why> — <what it costs if wrong>`, and keep
 going. Deviating from the plan without a ledgered ruling is a decision made
 in secret.
 
-Four things stop you, and only these: an irreversible or destructive
+These stop you, and only these: an irreversible or destructive
 operation; a security-sensitive action; a side effect outside this worktree
 that norms say you ask about first (a merge, a push to a shared branch, a
-publish); and a plan so broken that every path forward is a guess. For
-those, stop and ask.
+publish), unless your human partner's instructions already authorize it (for
+example, merging a PR at the revision the final review approved, after green
+checks); and a plan so broken that every path forward is a guess. For those,
+stop and ask.
 
 ## When to Use
 
@@ -83,7 +85,7 @@ digraph process {
     "Setup: worktree, workspace + ledger, read plan + spec, pre-flight scan" [shape=box];
     "More tasks remain?" [shape=diamond];
     "Final whole-branch review (fresh reviewer if you have one)" [shape=box];
-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" [shape=box];
+    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
@@ -99,8 +101,8 @@ digraph process {
     "task-done: run tests, ledger the result; mark todo complete" -> "More tasks remain?";
     "More tasks remain?" -> "task-start: brief + BASE; read the brief" [label="yes"];
     "More tasks remain?" -> "Final whole-branch review (fresh reviewer if you have one)" [label="no"];
-    "Final whole-branch review (fresh reviewer if you have one)" -> "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger";
-    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger" -> "Final review clean: delete this plan's workspace";
+    "Final whole-branch review (fresh reviewer if you have one)" -> "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)";
+    "Re-grade, then: Critical/Important → ONE fix pass, each fix RED→GREEN + green suite; Minor → ledger\n(partner requires review of post-review changes: fix + independent re-review until clean)" -> "Final review clean: delete this plan's workspace";
     "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
@@ -249,13 +251,16 @@ made. Specify the model
 explicitly; an omitted model inherits the session's, which may not be the
 most capable. This is the one fresh context the whole run buys. Do not
 skip it, and do not replace it with your own read of the diff.
+When `alkontv-dev:reviewer` is an available agent type, dispatch the final reviewer as that type, with the model and effort your partner's model table gives the final branch review.
 
 **Without a subagent tool:** read code-reviewer.md and perform that review
 yourself against the package, as a separate pass after the last task's
 ledger line. Write `Final review: self-review (no subagent tool)` to the
 ledger, and say so in your final message: a self-review by the author is
 weaker than a fresh reviewer, and your human partner decides whether that
-is enough before merge.
+is enough before merge. When their instructions require an independent
+review, or a review of every change made after a review, a self-review does not satisfy it: the branch is not integrated
+until an independent reviewer has checked it, or they say otherwise.
 
 Sort the findings before you act on any of them. The reviewer's severity
 labels are advice; the gate is yours. Its "Declined to judge" list is
@@ -277,16 +282,30 @@ because the spec was silent has graded the spec, not the effect. Then:
 Fix the Critical and Important findings yourself — you are the
 implementer here — in ONE pass. Each fix is verified by TDD, not by a
 second reviewer: write the test that reproduces the finding, watch it
-fail, make it pass, then run the whole suite. Record each in the ledger as
+fail, make it pass, then run the whole suite (or the scope and mechanism the project's verification policy sets, if it defines one). Record each in the ledger as
 `Final: fixed <finding> — <test name> RED→GREEN, suite <N>/<N>`. A fix
 without a test that failed first is not verified; a suite that is not
 green after the pass means the pass is not over. Do not dispatch a
 re-review: it would re-read a diff whose covering tests already answer
-"addressed" and whose suite run already answers "broke nothing".
+"addressed" and whose suite run already answers "broke nothing" (unless
+their instructions require a review of every change made after a review —
+see below).
 
 A finding you decide not to fix is a ruling — `Final: Ruling: <finding> —
 <why the code stands> — <cost if wrong>` — and reaches your human partner
 in the rulings list. There is no second fix pass.
+
+**When your human partner's instructions require a review of every change
+made after a review**, they replace the single-pass and no-re-review rules above. After the
+fix pass, get an independent scoped review of the new revision — a fresh
+reviewer, never your own read; without a subagent tool that is a stop.
+Technical findings from it are fixed the same way and the new revision is
+reviewed again, until the review is clean; a technical finding is fixed,
+not ruled away. Minors go to their backlog as their instructions say.
+Only a real
+blocker (no independent reviewer available, or the same finding still open
+after the fix was escalated to a fresh implementer or a more capable model),
+goes to them.
 
 ## Finish
 
@@ -299,7 +318,12 @@ behalf — and the findings you chose not to act on — reach them.
 
 When the final review is clean and its fixes are committed, delete this
 plan's workspace directory — the git history is the record now. Sibling
-directories belong to other plans; leave them alone.
+directories belong to other plans; leave them alone. Before deleting,
+check whether your final message, the ledger or a report cites a file
+inside the workspace as verification evidence (test output, run logs).
+Move those files to the location your human partner's instructions or
+the project's check scripts use for logs and update the cited paths; if
+there is no such location, keep the workspace and say so.
 
 Use superpowers:finishing-a-development-branch.
 
@@ -309,10 +333,10 @@ Use superpowers:finishing-a-development-branch.
 |--------|---------|
 | "I remember what Task N says" | You remember a summary. The brief has the exact values. Read it. |
 | "The plan's code is right, skip watching the test fail" | A test you never saw fail proves nothing. It is one step. Run it. |
-| "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. |
+| "I'll run the full suite at the end instead of per step" | Per-step runs are how you learn which step broke it. The end-of-task run is the contract, not a substitute. Where the project's verification policy sets the scope (targeted tests per step, full suite through a queue or CI at the end), that policy is the contract. |
 | "The plan is wrong here, I'll just do the right thing" | Do the right thing and ledger the ruling. Unledgered deviation is a decision made in secret. |
 | "I'll write the ledger lines after a few tasks" | Compaction does not wait for a convenient moment. One line per task, in the same message as the commit. |
-| "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the four stops stop you. |
+| "Let me check in before the next task" | They chose inline to spend less. Progress prompts spend their time instead. Only the stops named above stop you. |
 | "I read my own diff carefully; the final reviewer is redundant" | Same author, same blind spots. The reviewer is the only fresh context this run buys. |
 | "Tests should pass, the change was trivial" | "Should" is not evidence. The contract requires the command and its output. |
 | "Subagents are slow and expensive, I'll skip the final review too" | Inline already removed the per-task reviewers. One review of the whole branch is the floor, not the ceiling. |

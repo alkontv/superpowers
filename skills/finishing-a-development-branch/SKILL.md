@@ -7,13 +7,13 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Overview
 
-**Core principle:** Verify tests → Detect environment → Present options → Execute choice → Clean up.
+**Core principle:** Verify tests → Detect environment → Present options (or follow the integration your human partner's instructions prescribe) → Execute choice → Clean up.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
 ## Step 1: Verify Tests
 
-Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`).
+Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`) — through the project's own mechanism if its instructions define one (a queue for heavy runs, or a green CI run of the same script on the latest commit).
 
 **If tests fail**, report the failures and stop — the menu comes after a green suite:
 
@@ -52,6 +52,24 @@ Confirm before merging: merging into the wrong base is expensive to undo.
 
 ## Step 4: Present Options
 
+If your human partner's instructions already prescribe how a finished
+branch is integrated (for example: a PR, merged after green checks and
+the final review at the approved revision), follow them and report what
+you did instead of presenting the menu. Discarding the work still
+happens only on their explicit request. When the final review was a
+self-review, left findings open (parked or residual load-bearing findings,
+findings ruled not to fix, deferred minors marked must-fix before merge),
+or fixes were made after it without a review of the new state, do not
+integrate yet:
+
+- If their instructions also require a review of every change made after a
+  review: fix the technical findings (a minor marked must-fix before merge
+  counts as one), re-run Step 1 on the new revision, get an independent
+  review of it (the author's self-review does not count), send the other
+  minors to their backlog as their instructions say, then integrate by
+  their rules. Ask them only for a real blocker (no independent reviewer available, or the same finding still open after the fix was escalated to a fresh implementer or a more capable model).
+- Otherwise: report them and ask.
+
 **Normal repo and named-branch worktree — present exactly these 3 options:**
 
 ```
@@ -79,7 +97,8 @@ Present the menu exactly as written — concise, with every option coming
 from the list above. Discarding the work happens only in response to your
 human partner explicitly asking for it (see "If your human partner asks to
 discard the work" below). Wait for their answer; the integration decision
-is theirs.
+is theirs, unless their instructions already prescribe integration (see the
+start of this step).
 
 ## Step 5: Execute Choice
 
@@ -214,7 +233,7 @@ place. If your platform provides a workspace-exit tool, use it.
 | Excuse | Reality |
 |--------|---------|
 | "Tests passed earlier this session" | Run the suite on the tree you are about to integrate. A green run only proves the tree it ran on. |
-| "They obviously want it merged" | Integration is your human partner's decision. Present the menu and wait. |
+| "They obviously want it merged" | Integration is your human partner's decision. Present the menu and wait — unless their instructions already prescribe integration (Step 4). |
 | "They seem done with this feature — I'll offer to discard it" | The menu is complete as written. Discard happens only when your human partner asks for it in so many words. |
 | "'Yeah, get rid of it' counts as confirmation" | Only the typed word `discard` authorizes deletion. |
 | "The PR is up, so the worktree is clutter now" | PR feedback gets fixed in that worktree. It stays until the work lands. |
