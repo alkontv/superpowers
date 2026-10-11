@@ -496,13 +496,12 @@ made in secret.
 When the final whole-branch review is clean and its fixes are merged,
 delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
-alone. Before deleting, check whether your final message, the ledger or
-a report cites a file inside the workspace as verification evidence
-(test output, run logs); the ledger counts as evidence too. Move those
-files, and copy the ledger with them, to the location your human
-partner's instructions or the project's check scripts use for logs and
-update the cited paths; if there is no such location, keep the workspace
-and say so.
+alone. Before deleting, always copy the ledger to the location your
+human partner's instructions or the project's check scripts use for logs
+(progress reports read it after the run), together with any file inside
+the workspace that your final message or a report cites as verification
+evidence (test output, run logs), and update the cited paths; if there is
+no such location, keep the workspace and say so.
 
 Use superpowers:finishing-a-development-branch.
 

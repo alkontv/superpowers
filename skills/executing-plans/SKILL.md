@@ -239,8 +239,9 @@ Run `../subagent-driven-development/scripts/review-package PLAN_FILE MERGE_BASE 
 (MERGE_BASE = the commit the branch started from, e.g.
 `git merge-base main HEAD`) and review from the file it prints.
 
-**With a subagent tool:** dispatch the reviewer on the most capable
-available model — the whole-branch review is a judgment task — using
+**With a subagent tool:** dispatch the reviewer on the model and effort your partner's model table gives
+the final branch review (the most capable available model only when there is no
+table; the whole-branch review is a judgment task) using
 superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md), with the
 package path, the plan and spec paths, the plan's Review Focus section
@@ -251,7 +252,7 @@ made. Specify the model
 explicitly; an omitted model inherits the session's, which may not be the
 most capable. This is the one fresh context the whole run buys. Do not
 skip it, and do not replace it with your own read of the diff.
-When `alkontv-dev:reviewer` is an available agent type, dispatch the final reviewer as that type, with the model and effort your partner's model table gives the final branch review.
+When `alkontv-dev:reviewer` is an available agent type, dispatch the final reviewer as that type; the model and effort come from your partner's model table either way.
 
 **Without a subagent tool:** read code-reviewer.md and perform that review
 yourself against the package, as a separate pass after the last task's
