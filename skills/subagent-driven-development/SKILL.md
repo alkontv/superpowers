@@ -30,11 +30,7 @@ that norms say you ask about first (a merge, a push to a shared branch, a
 publish), unless your human partner's instructions already authorize it (for
 example, merging a PR at the revision the final review approved, after green
 checks); and a plan so broken that every path forward is a guess. For those,
-stop and ask. When their instructions set an approval boundary, a new
-decision inside it (product behavior or a key technical decision) also goes
-to them: ask, batched with your recommendation, and keep executing the tasks
-that do not depend on it; inside that boundary, rulings are for technical
-ambiguities only.
+stop and ask.
 
 ## When to Use
 
@@ -84,7 +80,7 @@ digraph process {
         "R = 5?" [shape=diamond];
         "Adjudicate each open finding" [shape=box];
         "Any load-bearing finding?" [shape=diamond];
-        "Rule and continue; stop only if every path forward is a guess\n(a decision inside their boundary: ask, continue independent tasks)" [shape=box];
+        "Rule and continue; stop only if every path forward is a guess" [shape=box];
         "Park findings in ledger with rulings" [shape=box];
         "Append completion to ledger, mark todo complete" [shape=box];
     }
@@ -115,7 +111,7 @@ digraph process {
     "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
     "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
     "Adjudicate each open finding" -> "Any load-bearing finding?";
-    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess\n(a decision inside their boundary: ask, continue independent tasks)" [label="yes"];
+    "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
     "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
     "Append completion to ledger, mark todo complete" -> "More tasks remain?";
@@ -189,7 +185,9 @@ implementation.
 
 ## Model Selection
 
-If your human partner's or the project's instructions define a model policy (which model and effort for which role), follow it; the defaults below apply only when none is defined.
+- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Risk:** line, task reviewers, re-reviewers and the final reviewer by their rows; never use a model their instructions forbid. The tiers below apply only when there is no such table.
+- **Agent types:** when `alkontv-dev:developer` and `alkontv-dev:reviewer` are available, dispatch implementers and fix rounds as `alkontv-dev:developer` and every reviewer (task, re-review, final) as `alkontv-dev:reviewer`: their narrow tool sets start with about half the context.
+- **Rulings reach the ledger:** before marking a task complete, copy every `Ruling:` line from the implementer's return or report file into the ledger, so "Rulings I made" at Finish includes them.
 
 Use the least powerful model that can handle each role to conserve cost and increase speed.
 
@@ -457,7 +455,7 @@ The final whole-branch review gets a package too: run
 branch started from, e.g. `git merge-base main HEAD`) and include the
 printed path in the final review dispatch, so the final reviewer reads
 one file instead of re-deriving the branch diff with git commands. Dispatch
-on the most capable available model (see Model Selection), using
+on the model your partner's table gives the final branch review (the most capable available model when there is no table; see Model Selection), using
 superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
 the ledger's deferred-minor and parked lines so it can triage which must be
@@ -480,8 +478,7 @@ made after a review, they replace the single-wave rule: residual technical
 findings get another fix dispatch and another scoped re-review of the new
 revision, until the review is clean; a technical finding is fixed, not
 parked or ruled away; minors go to their backlog as their instructions say.
-Only a new decision inside their approval boundary, or a real
-blocker (no independent reviewer available, or the same finding still open
+Only a real blocker (no independent reviewer available, or the same finding still open
 after the fix was escalated to a fresh implementer or a more capable model),
 goes to them before any merge.
 
@@ -499,12 +496,12 @@ made in secret.
 When the final whole-branch review is clean and its fixes are merged,
 delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
-alone. Before deleting, check whether your final message, the ledger or
-a report cites a file inside the workspace as verification evidence
-(test output, run logs). Move those files to the location your human
-partner's instructions or the project's check scripts use for logs and
-update the cited paths; if there is no such location, keep the workspace
-and say so.
+alone. Before deleting, always copy the ledger to the location your
+human partner's instructions or the project's check scripts use for logs
+(progress reports read it after the run), together with any file inside
+the workspace that your final message or a report cites as verification
+evidence (test output, run logs), and update the cited paths; if there is
+no such location, keep the workspace and say so.
 
 Use superpowers:finishing-a-development-branch.
 

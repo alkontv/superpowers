@@ -42,11 +42,7 @@ that norms say you ask about first (a merge, a push to a shared branch, a
 publish), unless your human partner's instructions already authorize it (for
 example, merging a PR at the revision the final review approved, after green
 checks); and a plan so broken that every path forward is a guess. For those,
-stop and ask. When their instructions set an approval boundary, a new
-decision inside it (product behavior or a key technical decision) also goes
-to them: ask, batched with your recommendation, and keep executing the tasks
-that do not depend on it; inside that boundary, rulings are for technical
-ambiguities only.
+stop and ask.
 
 ## When to Use
 
@@ -243,8 +239,9 @@ Run `../subagent-driven-development/scripts/review-package PLAN_FILE MERGE_BASE 
 (MERGE_BASE = the commit the branch started from, e.g.
 `git merge-base main HEAD`) and review from the file it prints.
 
-**With a subagent tool:** dispatch the reviewer on the most capable
-available model — the whole-branch review is a judgment task — using
+**With a subagent tool:** dispatch the reviewer on the model and effort your partner's model table gives
+the final branch review (the most capable available model only when there is no
+table; the whole-branch review is a judgment task) using
 superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md), with the
 package path, the plan and spec paths, the plan's Review Focus section
@@ -255,6 +252,7 @@ made. Specify the model
 explicitly; an omitted model inherits the session's, which may not be the
 most capable. This is the one fresh context the whole run buys. Do not
 skip it, and do not replace it with your own read of the diff.
+When `alkontv-dev:reviewer` is an available agent type, dispatch the final reviewer as that type; the model and effort come from your partner's model table either way.
 
 **Without a subagent tool:** read code-reviewer.md and perform that review
 yourself against the package, as a separate pass after the last task's
@@ -305,7 +303,7 @@ reviewer, never your own read; without a subagent tool that is a stop.
 Technical findings from it are fixed the same way and the new revision is
 reviewed again, until the review is clean; a technical finding is fixed,
 not ruled away. Minors go to their backlog as their instructions say.
-Only a new decision inside their approval boundary, or a real
+Only a real
 blocker (no independent reviewer available, or the same finding still open
 after the fix was escalated to a fresh implementer or a more capable model),
 goes to them.

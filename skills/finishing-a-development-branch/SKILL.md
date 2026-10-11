@@ -67,8 +67,7 @@ integrate yet:
   counts as one), re-run Step 1 on the new revision, get an independent
   review of it (the author's self-review does not count), send the other
   minors to their backlog as their instructions say, then integrate by
-  their rules. Ask them only for a new decision inside their approval
-  boundary or a real blocker (no independent reviewer available, or the same finding still open after the fix was escalated to a fresh implementer or a more capable model).
+  their rules. Ask them only for a real blocker (no independent reviewer available, or the same finding still open after the fix was escalated to a fresh implementer or a more capable model).
 - Otherwise: report them and ask.
 
 **Normal repo and named-branch worktree — present exactly these 3 options:**
