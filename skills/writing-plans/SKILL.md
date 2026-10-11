@@ -15,7 +15,6 @@ Write implementation plans for an engineer who has not seen this codebase or thi
 
 **Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
-- A large plan — one that will be executed in more than one group — is a folder with the same name instead of one file. See Plan Layout.
 
 ## Scope Check
 
@@ -50,26 +49,6 @@ independently testable deliverable.
 - "Run the tests and make sure they pass" - step
 - "Commit" - step
 
-## Plan Layout
-
-A large plan is executed group by group, each group by a fresh agent that should read only the shared part and its own tasks. Write it as a folder:
-
-```
-docs/superpowers/plans/YYYY-MM-DD-<feature-name>/
-  README.md            Plan Document Header, shared decisions and contracts, file map, Groups table
-  review.md            Review Focus and other checks only reviewers need
-  tasks/NN-<slug>.md   one task per file, in the Task Structure format
-```
-
-- **README.md is the only place for what more than one task needs:** decisions, contracts between tasks, constraints. A task links to the section it relies on (`[Contracts](../README.md#contracts)`) instead of repeating it.
-- **Groups table in README.md:** group, its tasks as links to task files, risk level with a one-line reason (the levels your human partner's execution workflow uses, e.g. `normal` / `complex` / `high`; when their instructions derive models from risk, the plan names no models), what it depends on. A group is a block one implementer does in one go; files are not agents.
-- **review.md holds only what a reviewer checks beyond the tasks' own tests.** Implementers do not read it, so anything that changes how the code must be written belongs in README.md or in the task. Each Review Focus line still adds its test to the owning task.
-- **Each task file works together with README.md alone:** Files, Interfaces with exact signatures, steps, verification command. It does not depend on reading other task files; their names and types reach it through Interfaces.
-- **Links are relative Markdown links, not wikilinks,** so they work on GitHub, in Obsidian and for agents.
-- **The folder is the plan.** There is no single-file copy; edit and review its files together.
-
-A plan executed in one group stays one file.
-
 ## Plan Document Header
 
 **Every plan MUST start with this header:**
@@ -77,7 +56,7 @@ A plan executed in one group stays one file.
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** Execute this plan with the method your human partner's instructions prescribe (for example their own workflow for a plan executed group by group). Otherwise, REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task; both take a single-file plan, not a folder. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -193,21 +172,17 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 **4. Review Focus:** For each input class or failure mode the spec implies, is there a task whose tests exercise it? The five uncovered ones most likely to bite a person go in the Review Focus section, and each line there gets its test added to the owning task. An empty section means you checked and found none, not that you skipped the check.
 
-**5. Layout (folder plans):** every task file is linked from the Groups table exactly once; no shared decision is copied into several task files; nothing an implementer needs lives only in review.md; the Interfaces of task files match each other.
-
-**6. Proportion:** Compare the plan's length to the spec's. A plan several times longer than the spec it implements is a transcript of the program, not a plan. If code blocks are most of the document, replace bodies with signatures, test names and assertions, and check that each step is still unambiguous.
+**5. Proportion:** Compare the plan's length to the spec's. A plan several times longer than the spec it implements is a transcript of the program, not a plan. If code blocks are most of the document, replace bodies with signatures, test names and assertions, and check that each step is still unambiguous.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
 ## Execution Handoff
 
 After saving and self-reviewing the plan, link it for your human partner
-to read (for a folder plan, link its README.md). If their instructions name their own plan-execution workflow or command, offer it alongside the approaches below. If they already told you to carry the work through to implementation, do not stop to ask them to pick a method: take the one their instructions prescribe (or the one you recommend), say which, and start; stop only for open decisions inside their approval boundary (product and key technical ones), asked together with your recommendation for each. Otherwise, if they have already explicitly supplied an execution method, ask
+to read. If they have already explicitly supplied an execution method, ask
 them to review the plan and confirm it captures what they want; wait for that
 review before implementation, then use the preserved method. Otherwise, ask
 them to review the plan and choose an execution method before implementation.
-
-When their instructions set the scale of execution, follow it: a plan executed group by group goes to their own workflow, while a small task or a single block is not turned into a full workflow (for example: a small edit in this session, one block to one implementer plus a review). A folder plan goes only to a method that reads folders; the generic helpers of subagent-driven-development and executing-plans (`sdd-workspace`, `task-brief`) expect one plan file. If their instructions say they do not read or approve plans, do not ask them to review this one: bring them only open decisions inside their approval boundary and start after any plan review their instructions call for — unless they asked only for the plan; then stop after it.
 
 **When no execution method has already been supplied:**
 
