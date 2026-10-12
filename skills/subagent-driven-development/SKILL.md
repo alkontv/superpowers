@@ -461,6 +461,15 @@ superpowers:requesting-code-review's
 the ledger's deferred-minor and parked lines so it can triage which must be
 fixed before merge.
 
+**Two lenses for a risky branch.** When any task of the plan is at risk
+`complex` or `high`, dispatch two final reviewers in parallel on the same
+package and revision instead of one, each told its lens: (1) correctness,
+requirements and test sufficiency; (2) privacy, security, data loss and the
+backend–client contract. Merge their findings into one list for the fix
+wave; the branch is approved only when both lenses approve the same
+revision, and each scoped re-review keeps its lens. Plans with only `normal`
+tasks keep a single final reviewer.
+
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.
 Per-finding fixers each rebuild context and re-run suites; a real
