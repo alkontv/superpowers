@@ -461,20 +461,27 @@ superpowers:requesting-code-review's
 the ledger's deferred-minor and parked lines so it can triage which must be
 fixed before merge.
 
-**Two lenses for a risky branch.** When any task of the plan is at risk
+**Two lenses for a risky branch.** When any task's **Risk:** line is
 `complex` or `high`, dispatch two final reviewers in parallel on the same
-package and revision instead of one, each told its lens: (1) correctness,
-requirements and test sufficiency; (2) privacy, security, data loss and the
-backend–client contract. Merge their findings into one list for the fix
-wave; the branch is approved only when both lenses approve the same
-revision, and each scoped re-review keeps its lens. Plans with only `normal`
-tasks keep a single final reviewer.
+package and revision instead of one — both on the final-branch-review row of
+your partner's model table, as `alkontv-dev:reviewer` when that type is
+available, both pointed at the ledger's deferred-minor and parked lines —
+each told its lens: (1) correctness, requirements and test sufficiency;
+(2) privacy, security, data loss and the backend–client contract. Merge their
+findings into one list for the fix wave. Its scoped re-review then runs once
+per lens, in parallel, over the same fix range: each re-reviewer gets the
+full merged findings list, verdicts every finding and checks the fix diff
+for new breakage under its own lens — a lens that had no findings included.
+The branch is approved only when both lenses are clean at the same
+revision; that revision's full SHA is the reviewed head a merge goes by. A
+plan without `complex`/`high` tasks, or without **Risk:** lines, keeps a
+single final reviewer. This rule belongs to subagent-driven execution only.
 
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.
 Per-finding fixers each rebuild context and re-run suites; a real
 session's final-review fix wave cost more than all its tasks combined.
-Then run exactly one scoped re-review of the fix wave
+Then run exactly one scoped re-review round of the fix wave (one re-reviewer per lens on a risky branch)
 (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
 [re-review-prompt.md](re-review-prompt.md)).
 Adjudicate any residual findings as in the task loop's breaker: park with
@@ -485,7 +492,8 @@ finishing-a-development-branch presents the options.
 When your human partner's instructions require a review of every change
 made after a review, they replace the single-wave rule: residual technical
 findings get another fix dispatch and another scoped re-review of the new
-revision, until the review is clean; a technical finding is fixed, not
+revision, until the review is clean (on a risky branch: both lenses clean
+at the same revision); a technical finding is fixed, not
 parked or ruled away; minors go to their backlog as their instructions say.
 Only a real blocker (no independent reviewer available, or the same finding still open
 after the fix was escalated to a fresh implementer or a more capable model),
