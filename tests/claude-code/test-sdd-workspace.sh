@@ -200,6 +200,23 @@ PLAN
         echo "    stderr: $guard_err"
     fi
 
+    # --- review group: one package over several tasks' commits ---
+    local group_base group_out group_path
+    group_base="$(cd "$repo" && git rev-parse HEAD)"
+    ( cd "$repo" \
+        && printf 'task 1\n' > g1 && git add g1 && git "${git_id[@]}" commit -qm group-task-1 \
+        && printf 'task 2\n' > g2 && git add g2 && git "${git_id[@]}" commit -qm group-task-2 )
+    group_out="$(cd "$repo" && "$SDD_SCRIPTS/review-package" plan-a.md "$group_base" HEAD)"
+    group_path="$(printf '%s\n' "$group_out" | sed -n 's/^wrote \(.*\): [0-9].*$/\1/p')"
+    if [[ "$group_out" == *": 2 commit(s),"* && -f "$group_path" ]] \
+        && grep -q 'group-task-1' "$group_path" && grep -q 'group-task-2' "$group_path" \
+        && grep -q '^+++ b/g1' "$group_path" && grep -q '^+++ b/g2' "$group_path"; then
+        pass "review-package covers every task of a review group from the group's BASE"
+    else
+        fail "review-package covers every task of a review group from the group's BASE"
+        echo "    got: $group_out"
+    fi
+
     # --- Worktree isolation: a linked worktree resolves its own workspace ---
     local wt="$TEST_ROOT/wt"
     ( cd "$repo" && git worktree add -q "$wt" -b wt-feature )
