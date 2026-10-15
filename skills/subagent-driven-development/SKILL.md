@@ -154,13 +154,17 @@ a ledger file, not only in todos.
 - Check for this plan's ledger at `<workspace>/progress.md`. If its first
   line names your plan file, tasks with a `Task <N>: complete` line are DONE
   — do not re-dispatch them. Tasks with a `Task <N>: done, awaiting group
-  G<n> review` line are implemented — do not re-dispatch them either; resume
-  at the first task with neither a `complete` nor a `done, awaiting` line. A
-  task whose last line is a fix round is mid-loop: resume the loop at the
-  next round. A group whose last line is `Group G<n> … fix round <R>/3` is
-  mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. A
-  group whose tasks are all `done, awaiting` with no fix-round line yet:
-  dispatch the group review from its `Group G<n>: base <sha>` line. A ledger
+  G<n> review` line are implemented — do not re-dispatch them either. First
+  finish any group with `done, awaiting` tasks by the rules below, then
+  resume at the first task with neither a `complete` nor a `done, awaiting`
+  line. A task whose last line is a fix round is mid-loop: resume the loop at
+  the next round. A group whose last line is `Group G<n> … fix round <R>/3` is
+  mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. For
+  a task or a group alike: a last fix-round line with 0 findings open means
+  write the completion lines; `3/3` with findings still open means the
+  breaker, never a round 4. A group whose tasks are all `done, awaiting` with
+  no fix-round line yet: dispatch the group review from its
+  `Group G<n>: base <sha>` line. A ledger
   whose first line names a different plan file — or a stray ledger at the
   old flat path `.superpowers/sdd/progress.md` — is another
   plan's progress: leave it in place and start your own, fresh.
