@@ -5,7 +5,7 @@ description: Use when executing implementation plans with independent tasks in t
 
 # Subagent-Driven Development
 
-Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each, and a broad whole-branch review at the end.
+Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each — or one review per review group of `normal` tasks, when the plan assigns them — and a broad whole-branch review at the end.
 
 **Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
 
@@ -54,7 +54,7 @@ digraph when_to_use {
 
 **vs. Executing Plans (inline):**
 - Fresh subagent per task (no context pollution) instead of one context doing every task
-- Review after each task (spec compliance + code quality) instead of only at the end
+- Review after each task or review group (spec compliance + code quality) instead of only at the end
 - Costs a fresh context per task and per review; inline costs one context plus one final reviewer
 - Both run in this session, share the same plan workspace and ledger, and never pause between tasks
 
@@ -70,19 +70,21 @@ digraph process {
         "Implementer asks questions?" [shape=diamond];
         "Answer questions, provide context" [shape=box];
         "Implementer implements, tests, commits, self-reviews" [shape=box];
-        "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
+        "Task in a review group, not its last?" [shape=diamond];
+        "Ledger: task done, awaiting group review" [shape=box];
+        "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [shape=box];
         "Spec ✅ and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
         "Rule on the conflict, ledger the ruling" [shape=box];
-        "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [shape=box];
+        "Fix round R of 3: R≤2 resume implementer(s); R3 fresh implementer, more capable model" [shape=box];
         "Dispatch scoped re-review (./re-review-prompt.md)" [shape=box];
         "All findings addressed?" [shape=diamond];
-        "R = 5?" [shape=diamond];
+        "R = 3?" [shape=diamond];
         "Adjudicate each open finding" [shape=box];
         "Any load-bearing finding?" [shape=diamond];
         "Rule and continue; stop only if every path forward is a guess" [shape=box];
         "Park findings in ledger with rulings" [shape=box];
-        "Append completion to ledger, mark todo complete" [shape=box];
+        "Append completion to ledger (each task of a group), mark todos complete" [shape=box];
     }
 
     "Setup: worktree, ledger check, read plan, pre-flight review" [shape=box];
@@ -97,24 +99,27 @@ digraph process {
     "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
     "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
-    "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
-    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+    "Implementer implements, tests, commits, self-reviews" -> "Task in a review group, not its last?";
+    "Task in a review group, not its last?" -> "Ledger: task done, awaiting group review" [label="yes"];
+    "Ledger: task done, awaiting group review" -> "More tasks remain?";
+    "Task in a review group, not its last?" -> "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [label="no"];
+    "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
+    "Spec ✅ and quality approved?" -> "Append completion to ledger (each task of a group), mark todos complete" [label="yes"];
     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
-    "Rule on the conflict, ledger the ruling" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model";
-    "Finding conflicts with plan text?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no"];
-    "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
+    "Rule on the conflict, ledger the ruling" -> "Fix round R of 3: R≤2 resume implementer(s); R3 fresh implementer, more capable model";
+    "Finding conflicts with plan text?" -> "Fix round R of 3: R≤2 resume implementer(s); R3 fresh implementer, more capable model" [label="no"];
+    "Fix round R of 3: R≤2 resume implementer(s); R3 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
     "Dispatch scoped re-review (./re-review-prompt.md)" -> "All findings addressed?";
-    "All findings addressed?" -> "Append completion to ledger, mark todo complete" [label="yes"];
-    "All findings addressed?" -> "R = 5?" [label="no"];
-    "R = 5?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no - next round"];
-    "R = 5?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
+    "All findings addressed?" -> "Append completion to ledger (each task of a group), mark todos complete" [label="yes"];
+    "All findings addressed?" -> "R = 3?" [label="no"];
+    "R = 3?" -> "Fix round R of 3: R≤2 resume implementer(s); R3 fresh implementer, more capable model" [label="no - next round"];
+    "R = 3?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
     "Adjudicate each open finding" -> "Any load-bearing finding?";
     "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
-    "Park findings in ledger with rulings" -> "Append completion to ledger, mark todo complete";
-    "Append completion to ledger, mark todo complete" -> "More tasks remain?";
+    "Park findings in ledger with rulings" -> "Append completion to ledger (each task of a group), mark todos complete";
+    "Append completion to ledger (each task of a group), mark todos complete" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)";
@@ -144,7 +149,9 @@ a ledger file, not only in todos.
   line names your plan file, tasks with a `Task <N>: complete` line are DONE
   — do not re-dispatch them; resume at the first task without one. A task
   whose last line is a fix round is mid-loop: resume the loop at the next
-  round. A ledger whose first line names a different plan file — or a stray
+  round. A task marked `done, awaiting group G<n> review` is implemented:
+  continue with the next task of its group, or, when every task of the group
+  is done, with the group review. A ledger whose first line names a different plan file — or a stray
   ledger at the old flat path `.superpowers/sdd/progress.md` — is another
   plan's progress: leave it in place and start your own, fresh.
 - Create the ledger with its identity as the first line:
@@ -185,7 +192,7 @@ implementation.
 
 ## Model Selection
 
-- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Risk:** line, task reviewers, re-reviewers and the final reviewer by their rows; never use a model their instructions forbid. The tiers below apply only when there is no such table.
+- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Risk:** line, task reviewers, re-reviewers and the final reviewer by their rows (a review group's reviewer and re-reviewers — the `normal` review row); never use a model their instructions forbid. The tiers below apply only when there is no such table.
 - **Agent types:** when `alkontv-dev:developer` and `alkontv-dev:reviewer` are available, dispatch implementers and fix rounds as `alkontv-dev:developer` and every reviewer (task, re-review, final) as `alkontv-dev:reviewer`: their narrow tool sets start with about half the context.
 - **Rulings reach the ledger:** before marking a task complete, copy every `Ruling:` line from the implementer's return or report file into the ledger, so "Rulings I made" at Finish includes them.
 
@@ -204,7 +211,7 @@ diff's size, complexity, and risk. A small mechanical diff does not need the
 most capable model; a subtle concurrency change does. Scoped re-reviews of
 small fix diffs take a cheap-to-mid tier.
 
-**Fix-loop escalation (rounds 4-5)**: use a model at least one tier above
+**Fix-loop escalation (round 3)**: use a model at least one tier above
 the implementer that got stuck.
 
 **Always specify the model explicitly when dispatching a subagent.** An
@@ -252,7 +259,8 @@ child is noticed within minutes, not at the end of the session.
 ### 1. Dispatch the implementer
 
 Record BASE (`git rev-parse HEAD`) before dispatching — the review package
-and fix-round diffs need it.
+and fix-round diffs need it. For a review group, the group's BASE is the one
+recorded before its first task; keep it in the ledger until the group review.
 
 - **Task brief:** before dispatching an implementer, run this skill's
   `bash scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
@@ -284,7 +292,7 @@ and fix-round diffs need it.
 - If an earlier task parked a finding in the area this task touches, carry
   a pointer to that ledger entry in the dispatch.
 - Record the implementer's agent identity from the dispatch result —
-  fix-loop rounds 1-3 resume this agent.
+  fix-loop rounds 1-2 resume this agent.
 - Never dispatch multiple implementation subagents in parallel (conflicts).
 
 Template: [implementer-prompt.md](implementer-prompt.md)
@@ -293,7 +301,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line that is not its group's last task is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` and dispatch the next task; the group's review follows its last task's DONE (step 3).
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
@@ -355,6 +363,16 @@ complete: you hold the plan and cross-task context the reviewer
 lacks. If you confirm an item is a real gap, treat it as a failed spec
 review — it enters the fix loop with the other findings.
 
+**Review groups.** When the plan marks tasks with `**Review group:** G<n>`,
+the group gets ONE task reviewer instead of one per task: after every task
+of the group reports DONE, run `bash scripts/review-package PLAN_FILE BASE HEAD`
+with BASE recorded before the group's first task and HEAD after its last,
+and dispatch the reviewer in group mode with every task's brief and report
+path. Implementers stay one per task. Tasks without the line (`complex`,
+`high`, a lone `normal`, or a plan without groups) are reviewed one by one
+as above. The fix loop below runs for the group as one unit; findings name
+their task.
+
 Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
 
 ### 4. The fix loop
@@ -376,19 +394,22 @@ Before the loop starts, two routes leave it immediately:
   the plan mandates it, and do not dispatch a fix that contradicts the plan
   without a recorded ruling.
 Everything else enters the loop. A fix round is one fix dispatch plus one
-scoped re-review. Five rounds maximum per task:
+scoped re-review. Three rounds maximum per task, or per review group:
 
-**Rounds 1-3 — resume the original implementer.** Send it the open findings
+**Rounds 1-2 — resume the original implementer** (for a group: the
+implementer of each task the findings name, one at a time, never in
+parallel). Send it the open findings
 verbatim. Its context is intact: it knows the task, the code, and its own
 choices. If your harness cannot send another message to a live subagent,
 dispatch a fresh implementer carrying the brief path, the report-file path,
 and the findings — the report file is the persistent memory either way.
 
-**Rounds 4-5 — dispatch a fresh implementer on a more capable model** (per
+**Round 3 — dispatch a fresh implementer on a more capable model** (per
 Model Selection), with the brief path, the report-file path, the open
 findings, and this framing: "A prior implementer attempted this task
-[N] times; you own it now. Read the report file for what was tried." A loop
-that survives three resumes usually means the implementer cannot see its
+[N] times; you own it now. Read the report file for what was tried." For a
+group, one fresh implementer gets the briefs and reports of the affected
+tasks. A loop that survives two resumes usually means the implementer cannot see its
 own problem — fresh eyes and a capability bump in one move.
 
 **Every round, either way:** the implementer fixes, re-runs the tests
@@ -402,19 +423,21 @@ whole suite.
 **The re-review is scoped.** Run `bash scripts/review-package PLAN_FILE FIX_BASE HEAD`
 where FIX_BASE is the head the previous review saw, and dispatch
 [re-review-prompt.md](re-review-prompt.md) with the findings list, the
-brief, the report file, and the printed diff path. The re-reviewer verdicts
+brief, the report file, and the printed diff path (for a group: the
+briefs and report files of the affected tasks). The re-reviewer verdicts
 each finding ADDRESSED or NOT ADDRESSED and flags new breakage in the fix
 diff only. New Critical/Important breakage in the fix diff joins the open
 findings list. Out-of-scope observations go to the ledger as deferred
 minors — they never extend the loop.
 
 **After each round,** append to the ledger:
-`Task <N>: fix round <R>/5 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
+`Task <N>: fix round <R>/3 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
+(for a group: `Group G<n> (tasks <N>-<M>): fix round <R>/3 (…)`)
 
 Never fix findings yourself in the controller session — your context stays
 clean for coordination, and controller fixes skip review.
 
-**The breaker.** When round 5's re-review still leaves findings open, stop
+**The breaker.** When round 3's re-review still leaves findings open, stop
 dispatching. Adjudicate each open finding yourself — you hold the plan and
 the cross-task context the reviewer lacks:
 
@@ -443,6 +466,9 @@ message as your other bookkeeping:
 - `Task <N>: complete (commits <base7>..<head7>, review clean)`
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
   tripped breaker
+- a review group is accepted as a whole, but the completion line is written
+  for each of its tasks (`Task <N>: complete (group G<n>, commits
+  <base7>..<head7>, review clean)`) — progress counts tasks
 
 Then mark the todo complete and move on. Never move to the next task while
 the review has open Critical/Important issues that are neither fixed nor
@@ -534,6 +560,7 @@ Use superpowers:finishing-a-development-branch.
 | "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
 | "Reviews slow the loop down" | The loop without reviews is just unverified churn. Reviews are the loop's brakes and steering. |
 | "Ledger bookkeeping is overhead" | The ledger is what survives compaction. Controllers without one have re-dispatched entire completed task sequences. |
+| "This `complex` task is small — fold it into the neighbouring group" | A mixed group either gets the cheap reviewer on risky code or raises the whole group to the expensive one. `complex` and `high` are reviewed alone. |
 | "The implementer spawned its own reviewer — free extra assurance" | It's a duplicate seat reviewing the same diff; the task review is the gate. A worker-spawned reviewer is a defect to flag, not rigor. |
 
 ## Example Workflow
@@ -589,7 +616,7 @@ Re-reviewer: Missing progress reporting — ADDRESSED (src/recovery.js:41).
   Magic number — ADDRESSED (src/recovery.js:7). New breakage: none.
   Verdict: all findings addressed.
 
-[Ledger: Task 2: fix round 1/5 (2 addressed, 0 open; commits d4e5f6a..b7c8d9e)]
+[Ledger: Task 2: fix round 1/3 (2 addressed, 0 open; commits d4e5f6a..b7c8d9e)]
 [Ledger: Task 2: complete (commits d4e5f6a..b7c8d9e, review clean)]
 
 ...

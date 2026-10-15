@@ -7,6 +7,12 @@ code quality.
 **Purpose:** Verify one task's implementation matches its requirements (nothing
 more, nothing less) and is well-built (clean, tested, maintainable)
 
+**Group mode:** for a review group (SKILL.md, "Review groups") the same
+template reviews several `normal` tasks at once: `[BRIEF_FILE]` and
+`[REPORT_FILE]` become one line per task (`Task N: brief <path>, report
+<path>`), the diff covers the whole group range, and the group-mode block
+below is kept in the prompt; for a single task, drop it.
+
 ```
 Subagent (general-purpose):
   description: "Review Task N (spec + quality)"
@@ -21,6 +27,14 @@ Subagent (general-purpose):
     ## What Was Requested
 
     Read the task brief: [BRIEF_FILE]
+
+    [GROUP MODE ONLY — drop for a single task:]
+    Group mode: this diff implements several tasks of one review group,
+    listed above with their briefs and reports. Give the spec-compliance
+    verdict per task (each task against its own brief), and one quality
+    verdict for the whole diff. Every finding names its task (`Task N:`),
+    so the controller can send it to that task's implementer; a finding
+    spanning tasks names each of them.
 
     Global constraints from the spec/design that bind this task:
     [GLOBAL_CONSTRAINTS]
@@ -162,6 +176,8 @@ Subagent (general-purpose):
 
     ### Spec Compliance
 
+    (Group mode: one block per task, headed `Task N`.)
+
     - ✅ Spec compliant | ❌ Issues found: [what's missing/extra/misunderstood,
       with file:line references]
     - ⚠️ Cannot verify from diff: [requirements you could not verify from the
@@ -190,15 +206,16 @@ Subagent (general-purpose):
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection
 - `[BRIEF_FILE]` — REQUIRED: the task brief file (`bash scripts/task-brief PLAN N`
-  prints the path; same file the implementer worked from)
+  prints the path; same file the implementer worked from); in group mode,
+  one `Task N: brief <path>, report <path>` line per task of the group
 - `[GLOBAL_CONSTRAINTS]` — the binding requirements copied verbatim from
   the plan's Global Constraints section or the spec: exact values, formats,
   and stated relationships between components (not process rules — those
   are already in this template)
 - `[REPORT_FILE]` — REQUIRED: the file the implementer wrote its detailed
   report to
-- `[BASE_SHA]` — commit before this task
-- `[HEAD_SHA]` — current commit
+- `[BASE_SHA]` — commit before this task (group mode: before the group's first task)
+- `[HEAD_SHA]` — current commit (group mode: after the group's last task)
 - `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review
   package to (`bash scripts/review-package PLAN_FILE BASE HEAD` prints the unique
   path it wrote; the package never enters the controller's context)
