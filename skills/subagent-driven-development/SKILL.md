@@ -70,8 +70,10 @@ digraph process {
         "Implementer asks questions?" [shape=diamond];
         "Answer questions, provide context" [shape=box];
         "Implementer implements, tests, commits, self-reviews" [shape=box];
-        "Task in a review group, not its last?" [shape=diamond];
-        "Ledger: task done, awaiting group review" [shape=box];
+        "Task in a review group?" [shape=diamond];
+        "Ledger: task done, awaiting group review (todo stays in progress)" [shape=box];
+        "Group's last task done?" [shape=diamond];
+        "Group with awaiting tasks left behind (next task outside it, or none left)?" [shape=diamond];
         "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [shape=box];
         "Spec ✅ and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
@@ -99,10 +101,12 @@ digraph process {
     "Implementer asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
     "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
-    "Implementer implements, tests, commits, self-reviews" -> "Task in a review group, not its last?";
-    "Task in a review group, not its last?" -> "Ledger: task done, awaiting group review" [label="yes"];
-    "Ledger: task done, awaiting group review" -> "More tasks remain?";
-    "Task in a review group, not its last?" -> "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [label="no"];
+    "Implementer implements, tests, commits, self-reviews" -> "Task in a review group?";
+    "Task in a review group?" -> "Ledger: task done, awaiting group review (todo stays in progress)" [label="yes"];
+    "Ledger: task done, awaiting group review (todo stays in progress)" -> "Group's last task done?";
+    "Group's last task done?" -> "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [label="yes"];
+    "Group's last task done?" -> "Group with awaiting tasks left behind (next task outside it, or none left)?" [label="no"];
+    "Task in a review group?" -> "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [label="no"];
     "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
     "Spec ✅ and quality approved?" -> "Append completion to ledger (each task of a group), mark todos complete" [label="yes"];
     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
@@ -119,7 +123,9 @@ digraph process {
     "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
     "Any load-bearing finding?" -> "Park findings in ledger with rulings" [label="no"];
     "Park findings in ledger with rulings" -> "Append completion to ledger (each task of a group), mark todos complete";
-    "Append completion to ledger (each task of a group), mark todos complete" -> "More tasks remain?";
+    "Append completion to ledger (each task of a group), mark todos complete" -> "Group with awaiting tasks left behind (next task outside it, or none left)?";
+    "Group with awaiting tasks left behind (next task outside it, or none left)?" -> "Generate review package (task, or whole group range), dispatch ONE task reviewer (./task-reviewer-prompt.md)" [label="yes - review the tasks done so far"];
+    "Group with awaiting tasks left behind (next task outside it, or none left)?" -> "More tasks remain?" [label="no"];
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals\n(partner requires review of post-review changes: repeat until clean)";
@@ -147,12 +153,16 @@ a ledger file, not only in todos.
   Another plan's directory is never yours to read or write.
 - Check for this plan's ledger at `<workspace>/progress.md`. If its first
   line names your plan file, tasks with a `Task <N>: complete` line are DONE
-  — do not re-dispatch them; resume at the first task without one. A task
-  whose last line is a fix round is mid-loop: resume the loop at the next
-  round. A task marked `done, awaiting group G<n> review` is implemented:
-  continue with the next task of its group, or, when every task of the group
-  is done, with the group review. A ledger whose first line names a different plan file — or a stray
-  ledger at the old flat path `.superpowers/sdd/progress.md` — is another
+  — do not re-dispatch them. Tasks with a `Task <N>: done, awaiting group
+  G<n> review` line are implemented — do not re-dispatch them either; resume
+  at the first task with neither a `complete` nor a `done, awaiting` line. A
+  task whose last line is a fix round is mid-loop: resume the loop at the
+  next round. A group whose last line is `Group G<n> … fix round <R>/3` is
+  mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. A
+  group whose tasks are all `done, awaiting` with no fix-round line yet:
+  dispatch the group review from its `Group G<n>: base <sha>` line. A ledger
+  whose first line names a different plan file — or a stray ledger at the
+  old flat path `.superpowers/sdd/progress.md` — is another
   plan's progress: leave it in place and start your own, fresh.
 - Create the ledger with its identity as the first line:
   `# SDD ledger — plan: <plan file path>`.
@@ -174,6 +184,10 @@ what you checked as you check it:
 - tasks that contradict each other or the plan's Global Constraints
 - anything the plan explicitly mandates that the review rubric treats as a
   defect (a test that asserts nothing, verbatim duplication of a logic block)
+- each review group: all its tasks `normal`, adjacent in execution order,
+  2–4 of them. A group line on a non-`normal` task is ignored — that task is
+  reviewed alone; an otherwise invalid group is split into valid groups or
+  reviewed per task. Ledger the corrected grouping as a ruling.
 
 The scan's output is a table, not a verdict. One row for every pair of tasks
 that share a file or an interface: the two tasks, what one produces against
@@ -260,7 +274,9 @@ child is noticed within minutes, not at the end of the session.
 
 Record BASE (`git rev-parse HEAD`) before dispatching — the review package
 and fix-round diffs need it. For a review group, the group's BASE is the one
-recorded before its first task; keep it in the ledger until the group review.
+recorded before its first task: at that dispatch, ledger
+`Group G<n>: base <sha>` — the group review and a resume after compaction
+start from it.
 
 - **Task brief:** before dispatching an implementer, run this skill's
   `bash scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
@@ -301,7 +317,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 Implementer subagents report one of four statuses. Handle each appropriately:
 
-**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line that is not its group's last task is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` and dispatch the next task; the group's review follows its last task's DONE (step 3).
+**DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` for every task of the group, the last one included, and keep its todo in progress until the group's completion lines are written. After the group's last task, the group review follows (step 3); otherwise dispatch the next task.
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
@@ -338,7 +354,8 @@ needed.
   dispatch a task reviewer without a diff file.
 - **Reviewer inputs:** the task reviewer gets three paths — the same brief
   file, the report file, and the review package — plus the global
-  constraints that bind the task.
+  constraints that bind the task (for a group: every task's brief and
+  report, one package).
 - The global-constraints block you hand the reviewer is its attention
   lens. Copy the binding requirements verbatim from the plan's Global
   Constraints section or the spec: exact values, exact formats, and the
@@ -373,6 +390,12 @@ path. Implementers stay one per task. Tasks without the line (`complex`,
 as above. The fix loop below runs for the group as one unit; findings name
 their task.
 
+A group review is never skipped. Before dispatching a task outside a group
+that still has `done, awaiting` tasks, and before the final review, review
+that group over the tasks done so far (BASE from its `Group G<n>: base`
+line). A plan change that drops or moves the group's last task (a BLOCKED
+split, a ruling) re-designates the last task: ledger it as a ruling.
+
 Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
 
 ### 4. The fix loop
@@ -398,7 +421,8 @@ scoped re-review. Three rounds maximum per task, or per review group:
 
 **Rounds 1-2 — resume the original implementer** (for a group: the
 implementer of each task the findings name, one at a time, never in
-parallel). Send it the open findings
+parallel; a finding that spans several tasks goes to ONE of them — the task
+whose code must change, else the later task). Send it the open findings
 verbatim. Its context is intact: it knows the task, the code, and its own
 choices. If your harness cannot send another message to a live subagent,
 dispatch a fresh implementer carrying the brief path, the report-file path,
@@ -467,10 +491,13 @@ message as your other bookkeeping:
 - `Task <N>: complete (commits <base7>..<head7>, <K> parked)` after a
   tripped breaker
 - a review group is accepted as a whole, but the completion line is written
-  for each of its tasks (`Task <N>: complete (group G<n>, commits
-  <base7>..<head7>, review clean)`) — progress counts tasks
+  for each of its tasks — progress counts tasks: `Task <N>: complete (group
+  G<n>, commits <base7>..<head7>, review clean)` or `Task <N>: complete
+  (group G<n>, commits <base7>..<head7>, <K> parked)`, where the range is the
+  task's own, from its `done, awaiting` line; fix commits stay on the
+  group's fix-round lines
 
-Then mark the todo complete and move on. Never move to the next task while
+Then mark the todo complete (for a group: every task's todo) and move on. Never move to the next task while
 the review has open Critical/Important issues that are neither fixed nor
 parked-with-ruling at the cap.
 

@@ -10,8 +10,9 @@ more, nothing less) and is well-built (clean, tested, maintainable)
 **Group mode:** for a review group (SKILL.md, "Review groups") the same
 template reviews several `normal` tasks at once: `[BRIEF_FILE]` and
 `[REPORT_FILE]` become one line per task (`Task N: brief <path>, report
-<path>`), the diff covers the whole group range, and the group-mode block
-below is kept in the prompt; for a single task, drop it.
+<path>`), the diff covers the whole group range, the description reads
+"Review Group G<n> (tasks N-M)", and the group-mode block below is kept in
+the prompt; for a single task, drop it.
 
 ```
 Subagent (general-purpose):
@@ -19,14 +20,15 @@ Subagent (general-purpose):
   model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
          model silently inherits the session's most expensive one]
   prompt: |
-    You are reviewing one task's implementation: first whether it matches its
+    You are reviewing one task's implementation (in group mode: several
+    tasks' implementations): first whether it matches its
     requirements, then whether it is well-built. This is a task-scoped gate,
     not a merge review — a broad whole-branch review happens separately after
     all tasks are complete.
 
     ## What Was Requested
 
-    Read the task brief: [BRIEF_FILE]
+    Read the task brief (group mode: each task's brief): [BRIEF_FILE]
 
     [GROUP MODE ONLY — drop for a single task:]
     Group mode: this diff implements several tasks of one review group,
@@ -34,14 +36,15 @@ Subagent (general-purpose):
     verdict per task (each task against its own brief), and one quality
     verdict for the whole diff. Every finding names its task (`Task N:`),
     so the controller can send it to that task's implementer; a finding
-    spanning tasks names each of them.
+    spanning tasks names each of them and marks the one whose code must
+    change.
 
     Global constraints from the spec/design that bind this task:
     [GLOBAL_CONSTRAINTS]
 
     ## What the Implementer Claims They Built
 
-    Read the implementer's report: [REPORT_FILE]
+    Read the implementer's report (group mode: each task's report): [REPORT_FILE]
 
     ## Diff Under Review
 
@@ -213,7 +216,8 @@ Subagent (general-purpose):
   and stated relationships between components (not process rules — those
   are already in this template)
 - `[REPORT_FILE]` — REQUIRED: the file the implementer wrote its detailed
-  report to
+  report to; in group mode it is covered by the `Task N: brief …, report …`
+  lines in `[BRIEF_FILE]` — fill both places with those lines
 - `[BASE_SHA]` — commit before this task (group mode: before the group's first task)
 - `[HEAD_SHA]` — current commit (group mode: after the group's last task)
 - `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review

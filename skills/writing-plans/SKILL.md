@@ -181,6 +181,8 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 **5. Proportion:** Compare the plan's length to the spec's. A plan several times longer than the spec it implements is a transcript of the program, not a plan. If code blocks are most of the document, replace bodies with signatures, test names and assertions, and check that each step is still unambiguous.
 
+**6. Review groups** (when tasks carry **Risk:** lines): every `**Review group:**` line sits on a `normal` task; each group holds 2–4 tasks adjacent in execution order; no `complex` or `high` task has one. Fix any group that breaks this.
+
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
 ## Plan Review
