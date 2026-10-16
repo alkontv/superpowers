@@ -19,7 +19,7 @@ NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 
 If you haven't run the verification command in this message, you cannot claim it passes.
 
-One exception: when the project's instructions accept recorded verification evidence — commit hash, command, result, environment and log — that evidence counts as fresh for that exact revision. Any change after it means re-running the affected checks.
+One exception: when the project's instructions accept recorded verification evidence — commit hash, command, result, environment and log — that evidence counts as fresh for that exact revision. Any change after it means re-running what the project's policy requires for that level (for a task, the affected checks).
 
 ## The Gate Function
 
