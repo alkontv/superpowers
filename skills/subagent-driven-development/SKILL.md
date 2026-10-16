@@ -144,7 +144,8 @@ partner's explicit consent.
 Conversation memory does not survive compaction. In real sessions,
 controllers that lost their place have re-dispatched entire completed task
 sequences — the single most expensive failure observed. Track progress in
-a ledger file, not only in todos.
+a ledger file, not only in todos. Write ledger lines in the same turn as
+the next dispatch or merge, not in a turn of their own.
 
 - Each plan owns a workspace: at skill start, run this skill's
   `bash scripts/sdd-workspace PLAN_FILE` — it prints the plan's git-ignored
@@ -312,7 +313,13 @@ start from it.
 - If an earlier task parked a finding in the area this task touches, carry
   a pointer to that ledger entry in the dispatch.
 - Record the implementer's agent identity from the dispatch result —
-  fix-loop rounds 1-2 resume this agent.
+  fix-loop rounds 1-2 resume this agent. If it has been idle for more than
+  five minutes and its context is over about 200k tokens, dispatch a fresh
+  fixer with the brief path, the report-file path, the findings and the diff
+  instead: the resume rewrites the whole context.
+- Name each dispatch `Task <N>: implementer|review|fix R<k>|re-review` or
+  `Final: review|fix|re-review` (a group: `Group G<n>: …`), so the spend can
+  be split by role later.
 - Never dispatch multiple implementation subagents in parallel (conflicts).
 
 Template: [implementer-prompt.md](implementer-prompt.md)
@@ -413,13 +420,19 @@ Before the loop starts, two routes leave it immediately:
   (`Task <N>: minor (deferred): <one-liner>`), and point the final
   whole-branch review at that list so it can triage which must be fixed
   before merge. A roll-up nobody reads is a silent discard. Minor findings
-  never enter the loop.
+  never enter the loop; folding a Minor into a task or group fix dispatch
+  counts as entering it.
 - A finding labeled plan-mandated — or any finding that conflicts with
   what the plan's text requires — is yours to rule on: weigh the finding
   against the plan text, decide with the spec as the binding authority, and
   ledger the ruling before you act on it. Do not dismiss the finding because
   the plan mandates it, and do not dispatch a fix that contradicts the plan
   without a recorded ruling.
+If your partner's instructions defer some checks of a review group to its
+last task (for example, one render pass for a group of screen tasks), treat
+the failures that task reports as Important findings naming the task that
+owns the code; they enter the loop with the review findings.
+
 Everything else enters the loop. A fix round is one fix dispatch plus one
 scoped re-review. Three rounds maximum per task, or per review group:
 
@@ -428,7 +441,8 @@ implementer of each task the findings name, one at a time, never in
 parallel; a finding that spans several tasks goes to ONE of them — the task
 whose code must change, else the later task). Send it the open findings
 verbatim. Its context is intact: it knows the task, the code, and its own
-choices. If your harness cannot send another message to a live subagent,
+choices (unless it has been idle past the threshold in §1 — then a fresh
+fixer). If your harness cannot send another message to a live subagent,
 dispatch a fresh implementer carrying the brief path, the report-file path,
 and the findings — the report file is the persistent memory either way.
 
