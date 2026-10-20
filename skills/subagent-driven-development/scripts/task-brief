@@ -3,23 +3,44 @@
 # implementer reads in one call, so the task text never has to be pasted
 # through the controller's context.
 #
-# Usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]
+# Usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE] [--sections "A; B"] [--no-sections]
+#
+# PLAN_FILE is a single-file plan, or a plan README next to a tasks/*.md
+# folder: the task is looked up in PLAN_FILE first, then in tasks/*.md; a task
+# taken from a tasks file is preceded by that file's group header (the text
+# before its first Task heading).
+#
+# README sections: the brief also carries the PLAN_FILE sections (## / ###
+# headings, case-insensitive prefix match) named by the task's "**Context:**"
+# line, by --sections, and always "Global Constraints" (unless --no-sections),
+# in README order. A name matching nothing exits 4.
 # Default OUTFILE: <repo-root>/.superpowers/sdd/<plan-basename>/task-<N>-brief.md
 # (per plan and per worktree; concurrent runs of the SAME plan in the same
 # working tree share it).
 set -euo pipefail
 
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-  echo "usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]" >&2
-  exit 2
-fi
+usage() { echo "usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE] [--sections \"A; B\"] [--no-sections]" >&2; exit 2; }
 
-plan=$1
-n=$2
+pos=()
+extra=""
+nosec=0
+while [ $# -gt 0 ]; do
+  case $1 in
+    --no-sections) nosec=1 ;;
+    --sections) [ $# -ge 2 ] || usage; extra="$extra;$2"; shift ;;
+    --sections=*) extra="$extra;${1#--sections=}" ;;
+    *) pos+=("$1") ;;
+  esac
+  shift
+done
+if [ ${#pos[@]} -lt 2 ] || [ ${#pos[@]} -gt 3 ]; then usage; fi
+
+plan=${pos[0]}
+n=${pos[1]}
 [ -f "$plan" ] || { echo "no such plan file: $plan" >&2; exit 2; }
 
-if [ $# -eq 3 ]; then
-  out=$3
+if [ ${#pos[@]} -eq 3 ]; then
+  out=${pos[2]}
 else
   # Invoke via bash rather than direct exec: some extractors (Python zipfile)
   # strip Unix exec bits when unpacking marketplace packages (#2040).
@@ -27,17 +48,124 @@ else
   out="$dir/task-${n}-brief.md"
 fi
 
-awk -v n="$n" '
-  /^```/ { infence = !infence }
-  !infence && /^#+[ \t]+Task[ \t]+[0-9]+/ {
-    intask = ($0 ~ ("^#+[ \t]+Task[ \t]+" n "([^0-9]|$)"))
-  }
-  intask { print }
-' "$plan" > "$out"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
 
-if [ ! -s "$out" ]; then
+# Print the text of task N from file $1 (fence-aware).
+extract_task() {
+  awk -v n="$n" '
+    /^```/ { infence = !infence }
+    !infence && /^#+[ \t]+Task[ \t]+[0-9]+/ {
+      intask = ($0 ~ ("^#+[ \t]+Task[ \t]+" n "([^0-9A-Za-z]|$)"))
+    }
+    intask { print }
+  ' "$1"
+}
+
+# Print the group header of file $1: the text before its first Task heading.
+group_header() {
+  awk '
+    /^```/ { infence = !infence }
+    !infence && /^#+[ \t]+Task[ \t]+[0-9]+/ { exit }
+    { print }
+  ' "$1"
+}
+
+header=""
+extract_task "$plan" > "$tmp/task"
+if [ ! -s "$tmp/task" ]; then
+  tasks_dir="$(dirname "$plan")/tasks"
+  if [ -d "$tasks_dir" ]; then
+    for f in "$tasks_dir"/*.md; do
+      [ -f "$f" ] || continue
+      extract_task "$f" > "$tmp/task"
+      if [ -s "$tmp/task" ]; then group_header "$f" > "$tmp/header"; header=1; break; fi
+    done
+  fi
+fi
+
+if [ ! -s "$tmp/task" ]; then
   echo "task ${n} not found in ${plan} (no heading matching 'Task ${n}')" >&2
   exit 3
 fi
 
-echo "wrote ${out}: $(wc -l < "$out" | tr -d ' ') lines"
+# Section names: Context line(s) of the task + --sections.
+ctx=$(awk '
+  /^```/ { infence = !infence; next }
+  !infence && match($0, /^[ \t]*([-*][ \t]+)?\*\*Context:\*\*/) { print substr($0, RLENGTH + 1) }
+' "$tmp/task" | tr '\n' ';')
+names="$ctx;$extra"
+opt="Global Constraints"
+[ "$nosec" -eq 1 ] && { names=""; opt=""; }
+
+# Select README sections. Pass 1 collects ## / ### headings outside fences with
+# their extent (to the next heading of the same or higher level); pass 2 prints
+# the selected ones in README order. Sections whose heading line is already in
+# the task text are skipped.
+secs_rc=0
+awk -v names="$names" -v opt="$opt" -v taskfile="$tmp/task" -v listfile="$tmp/list" '
+  function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
+  function norm(s) {
+    s = trim(s)
+    sub(/^README[ \t]*/, "", s); sub(/^§[ \t]*/, "", s)
+    return tolower(trim(s))
+  }
+  function find(name,   i, ln) {
+    ln = length(name)
+    for (i = 1; i <= nh; i++) if (substr(tolower(htext[i]), 1, ln) == name) return i
+    return 0
+  }
+  BEGIN { q = sprintf("%c", 39); while ((getline l < taskfile) > 0) intaskline[l] = 1 }
+  FNR == NR {
+    if ($0 ~ /^```/) infence = !infence
+    last = FNR
+    if (!infence && match($0, /^#+/)) {
+      lvl = RLENGTH
+      if (lvl <= 3) {
+        # close open sections of same or higher level
+        for (i = nh; i >= 1; i--) if (hend[i] == 0 && hlvl[i] >= lvl) hend[i] = FNR - 1
+        nh++; hln[nh] = FNR; hlvl[nh] = lvl; hend[nh] = 0
+        t = $0; sub(/^#+[ \t]*/, "", t); htext[nh] = t; hline[nh] = $0
+      } else {
+        for (i = nh; i >= 1; i--) if (hend[i] == 0 && hlvl[i] >= lvl) hend[i] = FNR - 1
+      }
+    }
+    next
+  }
+  FNR == 1 && !selected_done {
+    selected_done = 1
+    for (i = 1; i <= nh; i++) if (hend[i] == 0) hend[i] = last
+    nn = split(names, arr, /[;,]/)
+    bad = 0
+    for (k = 1; k <= nn; k++) {
+      nm = norm(arr[k]); if (nm == "") continue
+      idx = find(nm)
+      if (!idx) { print "task-brief: no README section matching " q trim(arr[k]) q > "/dev/stderr"; bad = 1; continue }
+      sel[idx] = 1
+    }
+    if (bad) exit 4
+    if (opt != "") { idx = find(tolower(opt)); if (idx) sel[idx] = 1 }
+    for (i = 1; i <= nh; i++) if (sel[i] && !(hline[i] in intaskline)) {
+      for (j = hln[i]; j <= hend[i]; j++) want[j] = i
+      starts[hln[i]] = i
+    }
+  }
+  {
+    if (FNR in starts) { print "<!-- README § " htext[starts[FNR]] " -->"; print htext[starts[FNR]] > listfile }
+    if (FNR in want) print
+  }
+' "$plan" "$plan" > "$tmp/secs" || secs_rc=$?
+[ "$secs_rc" -eq 0 ] || exit "$secs_rc"
+
+# listfile holds heading texts in README order (empty when no sections).
+[ -f "$tmp/list" ] || : > "$tmp/list"
+names_joined=$(paste -sd'|' "$tmp/list" | sed 's/|/ | /g')
+
+{
+  [ -n "$header" ] && cat "$tmp/header"
+  cat "$tmp/task"
+  cat "$tmp/secs"
+  echo "<!-- brief: task ${n}, sections: ${names_joined:-none} -->"
+} > "$out"
+
+echo "wrote ${out}: $(wc -l < "$out" | tr -d ' ') lines, sections: $(paste -sd',' "$tmp/list" | sed 's/,/, /g;s/^$/none/')"
