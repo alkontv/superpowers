@@ -90,7 +90,10 @@ if [ ! -s "$tmp/task" ]; then
 fi
 
 # Section names: Context line(s) of the task + --sections.
-ctx=$(sed -n 's/^.*\*\*Context:\*\*//p' "$tmp/task" | tr '\n' ';')
+ctx=$(awk '
+  /^```/ { infence = !infence; next }
+  !infence && match($0, /^[ \t]*([-*][ \t]+)?\*\*Context:\*\*/) { print substr($0, RLENGTH + 1) }
+' "$tmp/task" | tr '\n' ';')
 names="$ctx;$extra"
 opt="Global Constraints"
 [ "$nosec" -eq 1 ] && { names=""; opt=""; }

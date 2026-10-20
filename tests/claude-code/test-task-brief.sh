@@ -113,6 +113,57 @@ err="$(run plan/README.md 2 "$o" --sections "Nonexistent" 2>&1 >/dev/null)" || r
 rc=0; run plan/README.md 9 "$TEST_ROOT/n9.md" >/dev/null 2>&1 || rc=$?
 [ "$rc" -eq 3 ]; check "heading inside a code fence is ignored (task 9 not found)" $?
 
+# Context line parsing: anchored, fence-aware
+mkdir -p "$repo/plan2/tasks"
+cp "$repo/plan/README.md" "$repo/plan2/README.md"
+cat > "$repo/plan2/tasks/C.md" <<'R'
+# Group C header
+
+## Task 3: Fenced context
+
+```
+**Context:** Other
+```
+
+T3-BODY
+
+## Task 4: Prose mention
+
+Do not remove the **Context:** line.
+
+T4-BODY
+
+## Task 5: Several lines
+
+**Context:** Contract
+- **Context:** Rulings
+
+T5-BODY
+
+## Task 6: Separators
+
+**Context:** §Russian, §Rulings
+
+T6-BODY
+R
+secs() { grep "^<!-- README §" "$1" | sed 's/.*§ //;s/ -->//' | paste -sd'|' -; }
+
+o="$TEST_ROOT/t3.md"; rc=0
+run plan2/README.md 3 "$o" >/dev/null 2>&1 || rc=$?
+{ [ "$rc" -eq 0 ] && ! has "$o" "OTHER-LINE" && [ "$(secs "$o")" = "Global Constraints" ]; }; check "Context inside a fence is ignored" $?
+
+o="$TEST_ROOT/t4.md"; rc=0
+run plan2/README.md 4 "$o" >/dev/null 2>&1 || rc=$?
+{ [ "$rc" -eq 0 ] && [ "$(secs "$o")" = "Global Constraints" ]; }; check "mid-line prose mention of Context is ignored" $?
+
+o="$TEST_ROOT/t5.md"
+run plan2/README.md 5 "$o" >/dev/null
+[ "$(secs "$o")" = "Global Constraints|Contract (backend <-> iOS)|Rulings 2026" ]; check "several Context lines are united (bullet form too)" $?
+
+o="$TEST_ROOT/t6.md"
+run plan2/README.md 6 "$o" >/dev/null
+[ "$(secs "$o")" = "Global Constraints|Russian (binding)|Rulings 2026" ]; check "comma separator and bare section prefix work" $?
+
 # Single-file plan regression
 cat > "$repo/single.md" <<'R'
 # Single
