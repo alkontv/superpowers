@@ -141,25 +141,43 @@ superpowers:using-git-worktrees to create one or verify the existing one.
 Never start implementation on a main/master branch without your human
 partner's explicit consent.
 
-**Parallel lines.** When the plan marks tasks with `**Line:** <name>`, run
-the lines at the same time, one implementer per line, each line in its own
-git worktree on its own branch cut from your branch:
-`git worktree add <dir>/<plan-slug>-<line> -b <your-branch>-<line> HEAD`.
-Put the line worktrees OUTSIDE the base repository's directory (e.g.
-`~/Code/.worktrees/<repo>/<plan-slug>-<line>`): the Claude desktop app blocks
-writes to any other worktree under the base repo, `.claude/worktrees/`
-included. Every dispatch to a line starts with `Worktree: <absolute path>`
-on its own line — the alkontv-dev `worktree-guard` hook lets the agent write
-only there (plus non-git scratch paths and `.superpowers/sdd/`), and blocks
-other trees for Write/Edit and the common Bash write forms. When a task of a
-line is accepted, merge its branch into yours (`git merge --no-ff`) and
-ledger `Line <name>: merged <sha>`; before dispatching a task whose
-**Consumes** names another line's task, merge your branch into that line
-(`git -C <line worktree> merge <your-branch>`). Lines never share files; a
-merge conflict is a plan defect — rule on it, ledger it, resolve it yourself.
-Heavy runs still go through the machine queue, so lines overlap in coding
-and light tests, not in simulator runs; each worktree builds from scratch
-once. After the last merge remove the line worktrees (`git worktree remove`).
+**Parallel lines.** When the plan marks tasks with `**Line:**` (see
+writing-plans), the lines run at the same time, one implementer per line,
+each in its own git worktree. After the ledger exists (below), for each line:
+
+1. Create the tree OUTSIDE the base repository's directory — the Claude
+   desktop app blocks writes to any other worktree under the base repo,
+   `.claude/worktrees/` included:
+   `git worktree add ~/Code/.worktrees/<repo>/<plan-slug>-<line> -b <your-branch>-<line> HEAD`,
+   and ledger `Line <name>: worktree <path> branch <branch>`.
+2. Everything SDD writes — ledger, briefs, reports, review packages — stays in
+   YOUR workspace (`sdd-workspace` run from your tree); pass absolute paths.
+   Only code and commits go to the line tree. The ledger is yours alone.
+3. Every dispatch to a line (implementer, fixer, reviewer, re-reviewer)
+   starts with `Worktree: <line path>` on its own line. The alkontv-dev
+   `worktree-guard` hook then lets the agent write only there, in non-git
+   scratch paths, in `.superpowers/sdd/` and in paths named by `Writable:`
+   lines, and denies other git trees for Write/Edit and the common Bash write
+   forms. Without that plugin the line is still the rule, unenforced.
+4. BASE and HEAD of a line task are the line tree's
+   (`git -C <line path> rev-parse HEAD`); generate its review package from
+   the line tree (`cd <line path> && bash <skill dir>/scripts/review-package
+   <plan> BASE HEAD <out>` with OUTFILE in your workspace). Review groups never
+   span lines. Fix rounds run in the line tree, before the merge.
+5. When a line task is accepted, merge its branch into yours
+   (`git merge --no-ff <branch>`) and ledger `Line <name>: merged <sha>`.
+   Merges happen one at a time, from your tree, in the turn you read the
+   acceptance. Before dispatching a task whose **Consumes** names another
+   line's task, merge your branch into that line
+   (`git -C <line path> merge <your-branch>`) while no agent of that line runs.
+   Lines never share files, so a conflict is a plan defect: rule on it, ledger
+   the ruling, and dispatch an implementer into the line to merge and resolve
+   it; the resolution gets a scoped review like a fix round.
+6. Heavy runs still go through the machine queue: lines overlap in coding and
+   light tests, not in simulator runs; each new tree builds from scratch once.
+7. After the last merge: `git worktree remove <path>` and `git branch -d
+   <branch>` per line. The final review runs on your branch.
+
 A plan without `**Line:**` lines runs in one tree, one implementer at a time.
 
 Conversation memory does not survive compaction. In real sessions,
@@ -186,7 +204,11 @@ the next dispatch or merge, not in a turn of their own.
   write the completion lines; `3/3` with findings still open means the
   breaker, never a round 4. A group whose tasks are all `done, awaiting` with
   no fix-round line yet: dispatch the group review from its
-  `Group G<n>: base <sha>` line. A ledger
+  `Group G<n>: base <sha>` line. A task whose last line is
+  `handoff <k>` is mid-task: dispatch a continuation from its report file
+  (§2 HANDOFF), never a fresh start. `Line <name>: worktree …` lines give the
+  line trees; a line task accepted but without a later
+  `Line <name>: merged` line still needs its merge. A ledger
   whose first line names a different plan file — or a stray ledger at the
   old flat path `.superpowers/sdd/progress.md` — is another
   plan's progress: leave it in place and start your own, fresh.
@@ -365,7 +387,8 @@ decisions, gotchas, files touched). Dispatch a fresh implementer, same model,
 same worktree, with the brief path, the report-file path and the framing "a
 prior implementer did part of this task; continue from the hand-off summary in
 the report file". A hand-off is not a fix round and not an escalation; ledger
-`Task <N>: handoff <k> at <sha>`.
+`Task <N>: handoff <k> at <sha>`. A third hand-off on one task means the
+task is too large: treat it as BLOCKED (split it, rule, ledger).
 
 **DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` for every task of the group, the last one included, and keep its todo in progress until the group's completion lines are written. After the group's last task, the group review follows (step 3); otherwise dispatch the next task.
 
@@ -402,7 +425,8 @@ needed.
   call. Use the BASE you recorded before dispatching the implementer —
   never `HEAD~1`, which silently truncates multi-commit tasks. Never
   dispatch a task reviewer without a diff file.
-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
+- **Reviewer inputs:** for a line task the dispatch starts with
+  `Worktree: <line path>`; the task reviewer gets three paths — the same brief
   file, the report file, and the review package — plus the global
   constraints that bind the task (for a group: every task's brief and
   report, one package).
