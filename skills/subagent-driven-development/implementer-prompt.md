@@ -39,7 +39,22 @@ Subagent (general-purpose):
     5. Self-review (see below)
     6. Report back
 
-    Work from: [directory]
+    Worktree: [directory]
+
+    Work only in this worktree. If a hook blocks a write, do not route
+    around it (no Bash heredocs, `git -C`, copies into another tree): stop
+    and report BLOCKED (kind: scope).
+
+    Read narrowly: Grep and line ranges instead of whole files, quiet test
+    output, `tail`/Grep on logs instead of `cat`. Do not open the plan README
+    or skill files — the brief carries the README sections you need; if one
+    is missing, report NEEDS_CONTEXT. Do not open snapshot PNGs unless the
+    task is a visual check.
+
+    If you are told your context passed the hand-off threshold
+    (context-watch), finish the current step to a consistent point, write a
+    hand-off summary into the report file (done, remaining, decisions,
+    gotchas, files touched, what is uncommitted) and return HANDOFF.
 
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
@@ -142,7 +157,7 @@ Subagent (general-purpose):
 
     Then report back with ONLY (under 15 lines — the detail lives in the
     report file):
-    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT | HANDOFF
     - Commits created (short SHA + subject)
     - One-line test summary (e.g. "14/14 passing, output pristine")
     - Your concerns, if any

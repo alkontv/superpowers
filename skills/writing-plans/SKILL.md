@@ -96,6 +96,8 @@ owns the code, in that task's own step style.]
 
 **Risk:** normal | complex | high — one-line reason
 **Review group:** G<n> — only on a grouped `normal` task (see below)
+**Context:** Global Constraints; Contract — the plan README sections this task needs (see below)
+**Line:** <name> — only in a plan with parallel lines (see below)
 
 **Files:**
 - Create: `exact/path/to/file.py`
@@ -144,6 +146,10 @@ When your partner's instructions choose models by task risk, every task carries 
 
 With those levels the plan also assigns **review groups**, so a group of `normal` tasks gets one reviewer instead of one per task: consecutive `normal` tasks, adjacent in execution order, form groups of 2–4, each task marked with the same `**Review group:** G<n>` line. A group never mixes risk levels — one riskier task would raise the whole group to the expensive reviewer; where dependencies interleave risks, split the group, and a lone `normal` task is reviewed alone. `complex` and `high` tasks get no group line: each is reviewed alone.
 
+**Context lines keep briefs small.** The implementer never reads the plan README: SDD's `task-brief` copies the task text plus the README sections its `**Context:**` line names (Global Constraints always) into the brief. Name every section the task relies on — contract, rulings for its area, screen states, language rules — and nothing else; a README section no task names is read by nobody but the reviewer of the plan.
+
+**Parallel lines.** A plan of 8+ tasks whose work splits into areas with disjoint files (backend, core, screens) marks each task with `**Line:** <name>`. Tasks of different lines run at the same time, each line in its own worktree (SDD, "Parallel lines"); inside a line tasks run in order. A task that consumes another line's output names that task under **Interfaces → Consumes**, so the lead merges it into the line before dispatching. Two lines never touch the same file; shared files (project file, string catalog, migrations index) belong to one line, or to a short task done before the split.
+
 ## What a Step Contains
 
 A step is done when the implementer can write exactly one reasonable thing
@@ -182,6 +188,8 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 **5. Proportion:** Compare the plan's length to the spec's. A plan several times longer than the spec it implements is a transcript of the program, not a plan. If code blocks are most of the document, replace bodies with signatures, test names and assertions, and check that each step is still unambiguous.
 
 **6. Review groups** (when tasks carry **Risk:** lines): every `**Review group:**` line sits on a `normal` task; each group holds 2–4 tasks adjacent in execution order; no `complex` or `high` task has one. Fix any group that breaks this.
+
+**7. Context and lines:** every task has a `**Context:**` line whose names match README headings; with `**Line:**` lines, no file appears in two lines' **Files:** blocks, and every cross-line dependency is in **Consumes**.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
