@@ -51,11 +51,6 @@ Subagent (general-purpose):
     is missing, report NEEDS_CONTEXT. Do not open snapshot PNGs unless the
     task is a visual check.
 
-    If you are told your context passed the hand-off threshold
-    (context-watch), finish the current step to a consistent point, write a
-    hand-off summary into the report file (done, remaining, decisions,
-    gotchas, files touched, what is uncommitted) and return HANDOFF.
-
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
@@ -136,9 +131,9 @@ Subagent (general-purpose):
 
     ## After Review Findings
 
-    If the task review finds issues, a fix round arrives as a fresh dispatch
-    with the findings, the brief, the report file and a short summary (you
-    are not resumed). Read the report file first, fix the findings, re-run
+    If the task review finds issues, you will be resumed with the findings
+    (or, when your context grew very large, a fresh implementer gets them
+    with the brief, this report file and a short summary). Fix them, re-run
     only the tests that cover the amended code, and append a fix
     report to your report file: what you changed, the covering tests you
     ran, the command, and the output. Reviewers will not re-run tests for
@@ -159,7 +154,7 @@ Subagent (general-purpose):
 
     Then report back with ONLY (under 15 lines — the detail lives in the
     report file):
-    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT | HANDOFF
+    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - Commits created (short SHA + subject)
     - One-line test summary (e.g. "14/14 passing, output pristine")
     - Your concerns, if any

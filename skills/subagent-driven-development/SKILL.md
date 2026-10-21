@@ -78,7 +78,7 @@ digraph process {
         "Spec ✅ and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
         "Rule on the conflict, ledger the ruling" [shape=box];
-        "Fix round R of 3: R≤2 fresh implementer, same model; R3 fresh implementer, more capable model" [shape=box];
+        "Fix round R of 3: R≤2 resume implementer(s), fresh past ~200k context; R3 fresh implementer, more capable model" [shape=box];
         "Dispatch scoped re-review (./re-review-prompt.md)" [shape=box];
         "All findings addressed?" [shape=diamond];
         "R = 3?" [shape=diamond];
@@ -111,13 +111,13 @@ digraph process {
     "Spec ✅ and quality approved?" -> "Append completion to ledger (each task of a group), mark todos complete" [label="yes"];
     "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
-    "Rule on the conflict, ledger the ruling" -> "Fix round R of 3: R≤2 fresh implementer, same model; R3 fresh implementer, more capable model";
-    "Finding conflicts with plan text?" -> "Fix round R of 3: R≤2 fresh implementer, same model; R3 fresh implementer, more capable model" [label="no"];
-    "Fix round R of 3: R≤2 fresh implementer, same model; R3 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
+    "Rule on the conflict, ledger the ruling" -> "Fix round R of 3: R≤2 resume implementer(s), fresh past ~200k context; R3 fresh implementer, more capable model";
+    "Finding conflicts with plan text?" -> "Fix round R of 3: R≤2 resume implementer(s), fresh past ~200k context; R3 fresh implementer, more capable model" [label="no"];
+    "Fix round R of 3: R≤2 resume implementer(s), fresh past ~200k context; R3 fresh implementer, more capable model" -> "Dispatch scoped re-review (./re-review-prompt.md)";
     "Dispatch scoped re-review (./re-review-prompt.md)" -> "All findings addressed?";
     "All findings addressed?" -> "Append completion to ledger (each task of a group), mark todos complete" [label="yes"];
     "All findings addressed?" -> "R = 3?" [label="no"];
-    "R = 3?" -> "Fix round R of 3: R≤2 fresh implementer, same model; R3 fresh implementer, more capable model" [label="no - next round"];
+    "R = 3?" -> "Fix round R of 3: R≤2 resume implementer(s), fresh past ~200k context; R3 fresh implementer, more capable model" [label="no - next round"];
     "R = 3?" -> "Adjudicate each open finding" [label="yes - breaker trips"];
     "Adjudicate each open finding" -> "Any load-bearing finding?";
     "Any load-bearing finding?" -> "Rule and continue; stop only if every path forward is a guess" [label="yes"];
@@ -204,9 +204,7 @@ the next dispatch or merge, not in a turn of their own.
   write the completion lines; `3/3` with findings still open means the
   breaker, never a round 4. A group whose tasks are all `done, awaiting` with
   no fix-round line yet: dispatch the group review from its
-  `Group G<n>: base <sha>` line. A task whose last line is
-  `handoff <k>` is mid-task: dispatch a continuation from its report file
-  (§2 HANDOFF), never a fresh start. `Line <name>: worktree …` lines give the
+  `Group G<n>: base <sha>` line. `Line <name>: worktree …` lines give the
   line trees; a line task accepted but without a later
   `Line <name>: merged` line still needs its merge. A ledger
   whose first line names a different plan file — or a stray ledger at the
@@ -361,9 +359,10 @@ start from it.
   review seat per task.
 - If an earlier task parked a finding in the area this task touches, carry
   a pointer to that ledger entry in the dispatch.
-- Never resume a finished implementer: its whole history (often 150–300k
-  tokens) is re-read on every turn of the resume. Fix rounds and hand-offs go
-  to a fresh implementer (§2 HANDOFF, §4).
+- Record the implementer's agent identity and its final context size (the
+  token count in its completion notice) from the dispatch result — fix-loop
+  rounds 1-2 resume this agent unless its context is over about 200k tokens
+  (§4).
 - **Targeted reading:** the dispatch tells the implementer to read code with
   Grep and line ranges, keep test output quiet, never `cat` whole logs, diffs
   or skill files, and never open snapshot PNGs unless the task is a visual
@@ -378,17 +377,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 ### 2. Handle the report
 
-Implementer subagents report one of five statuses. Handle each appropriately:
-
-**HANDOFF:** The implementer's context passed the hand-off threshold (about
-120k tokens; the alkontv-dev `context-watch` hook tells it) and it stopped at a
-consistent point with a hand-off summary in the report file (done, remaining,
-decisions, gotchas, files touched). Dispatch a fresh implementer, same model,
-same worktree, with the brief path, the report-file path and the framing "a
-prior implementer did part of this task; continue from the hand-off summary in
-the report file". A hand-off is not a fix round and not an escalation; ledger
-`Task <N>: handoff <k> at <sha>`. A third hand-off on one task means the
-task is too large: treat it as BLOCKED (split it, rule, ledger).
+Implementer subagents report one of four statuses. Handle each appropriately:
 
 **DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` for every task of the group, the last one included, and keep its todo in progress until the group's completion lines are written. After the group's last task, the group review follows (step 3); otherwise dispatch the next task.
 
@@ -499,16 +488,19 @@ owns the code; they enter the loop with the review findings.
 Everything else enters the loop. A fix round is one fix dispatch plus one
 scoped re-review. Three rounds maximum per task, or per review group:
 
-**Rounds 1-2 — a fresh implementer on the same model** (for a group: one
-per task the findings name, one at a time within a worktree; a finding that
-spans several tasks goes to ONE of them — the task whose code must change,
-else the later task). It gets the brief path, the report-file path, the open
-findings verbatim and a short summary you write in at most ten lines: what
-the task delivered (commits), what each finding asks, which files and tests
-it touches. Never resume the original implementer: a resume re-reads its
-whole history every turn, and in a real stage fixers resumed at 150–200k
-tokens cost more than the fix itself. The report file is the persistent
-memory.
+**Rounds 1-2 — resume the original implementer** (for a group: the
+implementer of each task the findings name, one at a time within a worktree;
+a finding that spans several tasks goes to ONE of them — the task whose code
+must change, else the later task). Send it the open findings verbatim. Its
+context is intact: it knows the task, the code, and its own choices. Only
+when its context is over about 200k tokens dispatch a fresh implementer on
+the same model instead, with the brief path, the report-file path, the
+findings and a summary of at most ten lines (what the task delivered, what
+each finding asks, which files and tests it touches): past that size every
+turn of a resume re-reads the whole history (in a real stage a resume at
+282k cost $1.76, a fresh fixer $0.26–0.33). If your harness cannot send
+another message to a live subagent, dispatch a fresh implementer the same
+way — the report file is the persistent memory either way.
 
 **Round 3 — dispatch a fresh implementer on a more capable model** (per
 Model Selection), with the brief path, the report-file path, the open
@@ -662,7 +654,7 @@ Use superpowers:finishing-a-development-branch.
 | Excuse | Reality |
 |--------|---------|
 | "Close enough on spec compliance" | Reviewer found spec gaps = not done. Fix or hit the cap and adjudicate — those are the only exits. |
-| "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Dispatch a fresh fixer with a short summary. |
+| "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
 | "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
 | "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes; they cannot wander. New findings on untouched code go to the ledger, not the loop. |
 | "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
@@ -716,7 +708,7 @@ Task reviewer: Spec ❌:
   - Missing: Progress reporting (spec says "report every 100 items")
   Issues (Important): Magic number (100)
 
-[Fix round 1: fresh implementer, same model, with brief, report file, both findings and a short summary]
+[Fix round 1: resume the implementer with both findings]
 Implementer: Added progress reporting, extracted PROGRESS_INTERVAL constant.
   Re-ran test/recovery.test.js — 10/10 passing. Fix report appended.
 
