@@ -115,7 +115,7 @@ Subagent (general-purpose):
 
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
-  re-reviews of small fix diffs take a cheap-to-mid tier (your partner's model table first)
+  re-reviews use the same model as the review they re-check (your partner's model table first)
 - `[BRIEF_FILE]` — the task brief file (same file the implementer worked from);
   for a review group, one `Task N: brief <path>, report <path>` line per task
   the findings name (then `[REPORT_FILE]` is covered by those lines)

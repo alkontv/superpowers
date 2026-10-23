@@ -198,11 +198,12 @@ the next dispatch or merge, not in a turn of their own.
   finish any group with `done, awaiting` tasks by the rules below, then
   resume at the first task with neither a `complete` nor a `done, awaiting`
   line. A task, group or final review whose last line is a handoff
-  (`Task <N>: handoff <k> (implementer|review), note <path>`,
-  `Group G<n>: handoff <k> (review), note <path>`,
-  `Final: handoff <k> (review), note <path>`) resumes by that line's role:
-  an implementer with `Task <N>: continue` and that note; a reviewer with a
-  fresh reviewer named as the original review (see HANDOFF in §2). A task whose last line is a fix round is mid-loop: resume the loop at
+  (`Task <N>: handoff <k> (implementer|review|re-review), note <path>`,
+  `Group G<n>: handoff <k> (review|re-review), note <path>`,
+  `Final: handoff <k> (review|re-review), note <path>`) resumes by that line's role:
+  an implementer with `Task <N>: continue` and that note; a reviewer or re-reviewer
+  with a fresh agent of that role, named as the original (`… : review` or
+  `… : re-review`, a re-review on the re-review template and its scope) (see HANDOFF in §2). A task whose last line is a fix round is mid-loop: resume the loop at
   the next round. A group whose last line is `Group G<n> … fix round <R>/3` is
   mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. For
   a task or a group alike: a last fix-round line with 0 findings open means
@@ -278,8 +279,8 @@ capable available model, not the session default.
 
 **Review tasks**: choose the model with the same judgment, scaled to the
 diff's size, complexity, and risk. A small mechanical diff does not need the
-most capable model; a subtle concurrency change does. Scoped re-reviews of
-small fix diffs take a cheap-to-mid tier.
+most capable model; a subtle concurrency change does. A scoped re-review
+uses the same model as the review it re-checks.
 
 **Fix-loop escalation (round 3)**: use a model at least one tier above
 the implementer that got stuck.
@@ -405,7 +406,7 @@ Implementer subagents report one of five statuses (reviewers also return HANDOFF
 
 **NEEDS_CONTEXT:** The implementer needs information that wasn't provided. A NEEDS_CONTEXT that reports a failed plan assumption or a missing contract goes to a diagnosis dispatch (`Plan: diagnosis`) on the partner's diagnosis row; it updates the contract and every dependent brief before any implementer resumes. Other NEEDS_CONTEXT: provide the context and re-dispatch.
 
-**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger the role that handed off: `Task <N>: handoff <k> (implementer|review), note <path>`, `Group G<n>: handoff <k> (review), note <path>`, `Final: handoff <k> (review), note <path>`. Recovery continues that role. An implementer's handoff: dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count, and the continuing agent becomes the task's implementer for later fix-round resumes (record its identity and context size). A reviewer's handoff: dispatch a fresh reviewer named as the original review or re-review (`Task <N>: review|re-review`, `Group G<n>: review|re-review` or `Final: review|re-review`), on the same model and effort, with the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
+**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger the role that handed off: `Task <N>: handoff <k> (implementer|review|re-review), note <path>`, `Group G<n>: handoff <k> (review|re-review), note <path>`, `Final: handoff <k> (review|re-review), note <path>`. Recovery continues that role. An implementer's handoff: dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count, and the continuing agent becomes the task's implementer for later fix-round resumes (record its identity and context size). A reviewer's or re-reviewer's handoff: dispatch a fresh agent of that role named as the original (`Task <N>: review` or `re-review`, `Group G<n>: review` or `re-review`, `Final: review` or `re-review`; a re-review uses the re-review template and its scope), on the same model and effort, with the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
 
 **BLOCKED:** The implementer cannot complete the task. Assess the blocker:
 1. If it's a context problem, provide more context and re-dispatch with the same model
@@ -457,7 +458,10 @@ needed.
   with the same first line, and confirms it. If the reviewer reports `no
   result in 15 min` and the file arrives later, dispatch a fresh confirmer of
   the reviewer's model (`Task <N>: review`, scope: confirm that file's
-  findings against the same revision). A required external review without a
+  findings against the same revision). Findings such a late confirmer confirms
+  after the task's `complete` line reopen that task's fix loop if
+  Critical/Important (next round number), else go to the ledger as deferred
+  minors. A required external review without a
   confirmed result is an open gap; resolve it before merge as your partner's
   instructions say.
 - The global-constraints block you hand the reviewer is its attention

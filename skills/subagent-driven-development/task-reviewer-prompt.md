@@ -83,12 +83,14 @@ Subagent (general-purpose):
     your report and return HANDOFF; a partial report never approves.
 
     If the dispatch names an external review file, wait for it after your own
-    pass (bounded, up to 15 minutes), check its `revision:` first line against
-    the head you review, confirm each finding against the code before it
-    enters your report, and report its result: confirmed findings, rejected
-    ones with the reason, `External: error …` if the run failed (name the
-    error), or `no result in 15 min`. Never run the external review yourself
-    unless the dispatch scopes you to the external fallback.
+    pass (bounded, up to 15 minutes): keep your turn open and wait in the
+    foreground in bounded steps; never end your turn only to wait. Check its
+    `revision:` first line against the head you review, confirm each finding
+    against the code before it enters your report, and report the outcome
+    under External review: `External: N confirmed, M rejected` (rejected ones
+    with the reason), `External: error …` if the run failed (name the error),
+    or `External: no result in 15 min`. Never run the external review
+    yourself unless the dispatch scopes you to the external fallback.
 
     ## Do Not Trust the Report
 
@@ -201,6 +203,11 @@ Subagent (general-purpose):
 
     ### Strengths
     [What's well done? Be specific.]
+
+    ### External review
+    [Only when the dispatch names an external review file: the outcome line
+    (`External: N confirmed, M rejected` | `External: error …` |
+    `External: no result in 15 min`).]
 
     ### Issues
 
