@@ -405,7 +405,7 @@ Implementer subagents report one of five statuses (reviewers also return HANDOFF
 
 **NEEDS_CONTEXT:** The implementer needs information that wasn't provided. A NEEDS_CONTEXT that reports a failed plan assumption or a missing contract goes to a diagnosis dispatch (`Plan: diagnosis`) on the partner's diagnosis row; it updates the contract and every dependent brief before any implementer resumes. Other NEEDS_CONTEXT: provide the context and re-dispatch.
 
-**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger the role that handed off: `Task <N>: handoff <k> (implementer|review), note <path>`, `Group G<n>: handoff <k> (review), note <path>`, `Final: handoff <k> (review), note <path>`. Recovery continues that role. An implementer's handoff: dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count, and the continuing agent becomes the task's implementer for later fix-round resumes (record its identity and context size). A reviewer's handoff: dispatch a fresh reviewer named as the original review (`Task <N>: review`, `Group G<n>: review` or `Final: review`), on the same model and effort, with the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
+**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger the role that handed off: `Task <N>: handoff <k> (implementer|review), note <path>`, `Group G<n>: handoff <k> (review), note <path>`, `Final: handoff <k> (review), note <path>`. Recovery continues that role. An implementer's handoff: dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count, and the continuing agent becomes the task's implementer for later fix-round resumes (record its identity and context size). A reviewer's handoff: dispatch a fresh reviewer named as the original review or re-review (`Task <N>: review|re-review`, `Group G<n>: review|re-review` or `Final: review|re-review`), on the same model and effort, with the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
 
 **BLOCKED:** The implementer cannot complete the task. Assess the blocker:
 1. If it's a context problem, provide more context and re-dispatch with the same model
@@ -441,6 +441,25 @@ needed.
   file, the report file, and the review package — plus the global
   constraints that bind the task (for a group: every task's brief and
   report, one package).
+- **Independent second-model review.** When your partner's instructions name an
+  external review model, launch one independent review per package and
+  revision after dispatching the Claude reviewer, writing its output to
+  `<workspace>/external-<package>-<short sha>.md` with the first line
+  `revision: <full sha>` (never into your own context), and name that path in
+  the reviewer's dispatch (`External review: <path>`). Seats follow your
+  partner's instructions; none at task or final re-reviews. Ledger every
+  pending external review (path, SHA) and close the line when its result is
+  confirmed. If the reviewer reports `External: error …` — a usage-limit
+  error, or a second failure after one retry of the external review on the
+  same revision — dispatch a fresh confirmer of the reviewer's model
+  (`Task <N>: review`, scope: external fallback; `Group G<n>: review` or `Final: review` for those seats) that runs your partner's
+  fallback model itself on the package, writes its answer to the same path
+  with the same first line, and confirms it. If the reviewer reports `no
+  result in 15 min` and the file arrives later, dispatch a fresh confirmer of
+  the reviewer's model (`Task <N>: review`, scope: confirm that file's
+  findings against the same revision). A required external review without a
+  confirmed result is an open gap; resolve it before merge as your partner's
+  instructions say.
 - The global-constraints block you hand the reviewer is its attention
   lens. Copy the binding requirements verbatim from the plan's Global
   Constraints section or the spec: exact values, exact formats, and the
@@ -510,7 +529,7 @@ owns the code; they enter the loop with the review findings.
 Everything else enters the loop. A fix round is one fix dispatch plus one
 scoped re-review. Three rounds maximum per task, or per review group:
 
-**Rounds 1-2 — resume the original implementer** (for a group: the
+**Rounds 1-2 — resume the task's current implementer** (for a group: the
 implementer of each task the findings name, one at a time within a worktree;
 a finding that spans several tasks goes to ONE of them — the task whose code
 must change, else the later task). Send it the open findings verbatim, as a resume named
@@ -541,14 +560,20 @@ covering test files in the fix message — a one-line fix does not need the
 whole suite.
 
 **The re-review is scoped.** Run `bash scripts/review-package PLAN_FILE FIX_BASE HEAD`
-where FIX_BASE is the head the previous review saw, and dispatch
-[re-review-prompt.md](re-review-prompt.md) with the findings list, the
-brief, the report file, and the printed diff path (for a group: the
-briefs and report files of the affected tasks). The re-reviewer verdicts
-each finding ADDRESSED or NOT ADDRESSED and flags new breakage in the fix
-diff only. New Critical/Important breakage in the fix diff joins the open
-findings list. Out-of-scope observations go to the ledger as deferred
-minors — they never extend the loop.
+where FIX_BASE is the head the previous review saw. A scoped re-review is a
+fresh dispatch of the same model as the review it re-checks, named
+`Task <N>: re-review` (a group: `Group G<n>: re-review`), using
+[re-review-prompt.md](re-review-prompt.md) with the findings, the fix diff
+path, every file the fix touches, the brief and report file (for a group: the
+briefs and report files of the affected tasks) and the task's test results on
+the fixed revision. The re-reviewer itself finds the callers of every changed
+symbol (Grep). It verdicts each finding ADDRESSED or NOT ADDRESSED and checks
+the fix for new breakage anywhere it reaches; new Critical/Important breakage
+in a caller of a changed symbol joins the open findings list. Unrelated
+untouched code stays out: observations there go to the ledger as deferred
+minors — they never extend the loop. Resume the original reviewer instead only
+if its last request was a few minutes ago; later, a resume rewrites its whole
+context.
 
 **After each round,** append to the ledger:
 `Task <N>: fix round <R>/3 (<X> addressed, <Y> open — <finding one-liners>; commits <a7>..<b7>)`
@@ -610,29 +635,28 @@ superpowers:requesting-code-review's
 the ledger's deferred-minor and parked lines so it can triage which must be
 fixed before merge.
 
-**Two lenses for a risky branch.** When any task's **Risk:** line is
-`complex` or `high`, dispatch two final reviewers in parallel on the same
-package and revision instead of one — both on the final-branch-review row of
-your partner's model table, as `alkontv-dev:reviewer` when that type is
-available, both pointed at the ledger's deferred-minor and parked lines —
-each told its lens: (1) correctness, requirements and test sufficiency;
-(2) privacy, security, data loss and the backend–client contract. Merge their
-findings into one list for the fix wave. Its scoped re-review then runs once
-per lens, in parallel, over the same fix range: each re-reviewer gets the
-full merged findings list, verdicts every finding and checks the fix diff
-for new breakage under its own lens — a lens that had no findings included.
-The branch is approved only when both lenses are clean at the same
-revision; that revision's full SHA is the reviewed head a merge goes by. A
-plan without `complex`/`high` tasks, or without **Risk:** lines, keeps a
-single final reviewer. This rule belongs to subagent-driven execution only.
+**One final reviewer, both checklists.** One final reviewer on the final-review
+row of your partner's model table (as `alkontv-dev:reviewer` when that type is
+available), pointed at the ledger's deferred-minor and parked lines, applies
+both checklists: (1) correctness, requirements and test sufficiency;
+(2) privacy, security, data loss and the backend–client contract. When your
+partner's instructions name an external review model, the final review also
+gets the independent second-model review described in "Independent
+second-model review" (section 3), file `external-final-<short sha>.md`,
+confirmed by that reviewer, not by you. Two same-model reviewers only to split
+a package over ~150k tokens by area, one of them owning the seams. The branch
+is approved at the revision every seat reviewed clean; that revision's full SHA
+is the reviewed head a merge goes by. This rule belongs to subagent-driven
+execution only.
 
 If the final whole-branch review returns findings, dispatch ONE fix subagent
 with the complete findings list — not one fixer per finding.
 Per-finding fixers each rebuild context and re-run suites; a real
 session's final-review fix wave cost more than all its tasks combined.
-Then run exactly one scoped re-review round of the fix wave (one re-reviewer per lens on a risky branch)
-(`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
-[re-review-prompt.md](re-review-prompt.md)).
+Then run exactly one scoped re-review round of the fix wave, one re-review per
+seat (`bash scripts/review-package PLAN_FILE FIX_BASE HEAD` over the fix range,
+[re-review-prompt.md](re-review-prompt.md), named `Final: re-review`); the
+re-review rule is the task loop's, and no external review runs at a re-review.
 Adjudicate any residual findings as in the task loop's breaker: park with
 rulings, or rule on the load-bearing ones and ledger what you decided. Only the stops above stop you here. There is no second fix wave —
 residual load-bearing findings surface to your human partner when
@@ -641,8 +665,8 @@ finishing-a-development-branch presents the options.
 When your human partner's instructions require a review of every change
 made after a review, they replace the single-wave rule: residual technical
 findings get another fix dispatch and another scoped re-review of the new
-revision, until the review is clean (on a risky branch: both lenses clean
-at the same revision); a technical finding is fixed, not
+revision, until the review is clean (every seat clean at the same
+revision); a technical finding is fixed, not
 parked or ruled away; minors go to their backlog as their instructions say.
 Only a real blocker (no independent reviewer available, or the same finding still open
 after the fix was escalated to a fresh implementer or a more capable model),
@@ -679,7 +703,7 @@ Use superpowers:finishing-a-development-branch.
 | "Close enough on spec compliance" | Reviewer found spec gaps = not done. Fix or hit the cap and adjudicate — those are the only exits. |
 | "I'll fix it myself, dispatching is overhead" | Controller fixes pollute your context and skip review. Resume the implementer. |
 | "One more round will converge" | Past the cap, rounds don't converge — the failure is structural. Adjudicate and route. |
-| "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes; they cannot wander. New findings on untouched code go to the ledger, not the loop. |
+| "The reviewer will just find something new anyway" | Scoped re-reviews verify fixes and what the fix reaches (callers of every changed symbol); they cannot wander. New findings on unrelated untouched code go to the ledger, not the loop. |
 | "This finding is obviously wrong, I'll drop it" | You adjudicate only at the cap, and every ruling is a ledger entry. Silent discards are forbidden. |
 | "The fix was small, skip the re-review" | Unreviewed fixes are how regressions land. Every round ends with a scoped re-review. |
 | "Reviews slow the loop down" | The loop without reviews is just unverified churn. Reviews are the loop's brakes and steering. |
