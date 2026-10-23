@@ -197,8 +197,12 @@ the next dispatch or merge, not in a turn of their own.
   G<n> review` line are implemented — do not re-dispatch them either. First
   finish any group with `done, awaiting` tasks by the rules below, then
   resume at the first task with neither a `complete` nor a `done, awaiting`
-  line. A task whose last line is a handoff (`Task <N>: handoff <k>, note
-  <path>`) resumes with `Task <N>: continue` and that note. A task whose last line is a fix round is mid-loop: resume the loop at
+  line. A task, group or final review whose last line is a handoff
+  (`Task <N>: handoff <k> (implementer|review), note <path>`,
+  `Group G<n>: handoff <k> (review), note <path>`,
+  `Final: handoff <k> (review), note <path>`) resumes by that line's role:
+  an implementer with `Task <N>: continue` and that note; a reviewer with a
+  fresh reviewer named as the original review (see HANDOFF in §2). A task whose last line is a fix round is mid-loop: resume the loop at
   the next round. A group whose last line is `Group G<n> … fix round <R>/3` is
   mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. For
   a task or a group alike: a last fix-round line with 0 findings open means
@@ -393,7 +397,7 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 ### 2. Handle the report
 
-Implementer subagents report one of five statuses. Handle each appropriately:
+Implementer subagents report one of five statuses (reviewers also return HANDOFF). Handle each appropriately:
 
 **DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` for every task of the group, the last one included, and keep its todo in progress until the group's completion lines are written. After the group's last task, the group review follows (step 3); otherwise dispatch the next task.
 
@@ -401,7 +405,7 @@ Implementer subagents report one of five statuses. Handle each appropriately:
 
 **NEEDS_CONTEXT:** The implementer needs information that wasn't provided. A NEEDS_CONTEXT that reports a failed plan assumption or a missing contract goes to a diagnosis dispatch (`Plan: diagnosis`) on the partner's diagnosis row; it updates the contract and every dependent brief before any implementer resumes. Other NEEDS_CONTEXT: provide the context and re-dispatch.
 
-**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger `Task <N>: handoff <k>, note <path>`; dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count. A reviewer's handoff: the fresh reviewer gets the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
+**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger the role that handed off: `Task <N>: handoff <k> (implementer|review), note <path>`, `Group G<n>: handoff <k> (review), note <path>`, `Final: handoff <k> (review), note <path>`. Recovery continues that role. An implementer's handoff: dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count, and the continuing agent becomes the task's implementer for later fix-round resumes (record its identity and context size). A reviewer's handoff: dispatch a fresh reviewer named as the original review (`Task <N>: review`, `Group G<n>: review` or `Final: review`), on the same model and effort, with the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
 
 **BLOCKED:** The implementer cannot complete the task. Assess the blocker:
 1. If it's a context problem, provide more context and re-dispatch with the same model
