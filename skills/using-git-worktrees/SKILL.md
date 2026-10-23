@@ -131,6 +131,8 @@ npm test / cargo test / pytest / go test ./...
 
 **If tests pass:** Report ready.
 
+Reuse valid evidence for the required revision, environment and scope; rerun when these differ.
+
 ### Report
 
 ```

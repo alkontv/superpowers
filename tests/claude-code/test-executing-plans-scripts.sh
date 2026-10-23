@@ -82,6 +82,29 @@ PLAN
         fail "task-start writes the brief file"
     fi
 
+    # --- task-start: task-brief output with README sections ---
+    # With a Global Constraints section task-brief ends its line with
+    # ", sections: Global Constraints"; task-start must still find the path.
+    cat > "$repo/plan-sec.md" <<'PLAN'
+# Plan
+
+## Task 1: First thing
+
+Do the first thing.
+
+## Global Constraints
+
+- Keep it small.
+PLAN
+    rc=0
+    out="$(cd "$repo" && "$EP_SCRIPTS/task-start" plan-sec.md 1 2>&1)" || rc=$?
+    if [[ "$rc" -eq 0 && "$out" == *"brief: $repo/.superpowers/sdd/plan-sec/task-1-brief.md"* ]]; then
+        pass "task-start parses task-brief output that lists sections"
+    else
+        fail "task-start parses task-brief output that lists sections (rc=$rc)"
+        echo "    got: $out"
+    fi
+
     # --- task-done: records a passing task ---
     ( cd "$repo" && echo x > work.txt && git add work.txt && git "${git_id[@]}" commit -qm "task 1" )
     local head

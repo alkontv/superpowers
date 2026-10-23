@@ -25,7 +25,7 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 
 **1. Get git SHAs:**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or: git merge-base origin/main HEAD
+BASE_SHA=<the BASE recorded when the work was dispatched>  # for a branch: $(git merge-base origin/main HEAD)
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
