@@ -40,6 +40,7 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{HEAD_SHA}` - Ending commit
 
 **3. Act on feedback:**
+- A HANDOFF report is partial and never approves: dispatch a fresh reviewer of the same model and effort for the unchecked scope with the earlier report; the last segment issues the verdict.
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
 - Note Minor issues for later
