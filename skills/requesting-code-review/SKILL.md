@@ -25,7 +25,7 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 
 **1. Get git SHAs:**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or: git merge-base origin/main HEAD
+BASE_SHA=<the BASE recorded when the work was dispatched>  # for a branch: $(git merge-base origin/main HEAD)
 HEAD_SHA=$(git rev-parse HEAD)
 ```
 
@@ -40,6 +40,7 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 - `{HEAD_SHA}` - Ending commit
 
 **3. Act on feedback:**
+- A HANDOFF report is partial and never approves: dispatch a fresh reviewer of the same model and effort for the unchecked scope with the earlier report; the last segment issues the verdict.
 - Fix Critical issues immediately
 - Fix Important issues before proceeding
 - Note Minor issues for later

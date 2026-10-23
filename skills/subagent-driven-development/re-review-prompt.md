@@ -2,10 +2,12 @@
 
 Use this template when dispatching a re-review after a fix round. The
 re-reviewer verifies the findings were addressed and checks the fix diff for
-new breakage. It is not a fresh review — the full review already happened.
+new breakage anywhere the fix reaches. It is not a fresh review — the full
+review already happened.
 
 **Purpose:** Verify each finding from the previous review was addressed, and
-that the fix itself broke nothing.
+that the fix itself broke nothing — in the diff or in the callers of what it
+changed.
 
 ```
 Subagent (general-purpose):
@@ -15,7 +17,8 @@ Subagent (general-purpose):
   prompt: |
     You are re-reviewing one task's fix round. A previous review produced
     findings; an implementer has attempted to fix them. Your job is to
-    verdict each finding and inspect the fix diff — nothing else.
+    verdict each finding, inspect the fix diff and the callers of every
+    symbol it changed — nothing else.
 
     ## The Task
 
@@ -35,7 +38,8 @@ Subagent (general-purpose):
     **Diff file:** [DIFF_FILE]
 
     Read the diff file once — it contains the fix commits, a stat summary,
-    and the fix diff with surrounding context. Do not re-run git commands.
+    and the fix diff with surrounding context. The dispatch also lists every
+    file the fix touches and the task's test results on the fixed revision. Do not re-run git commands.
     If the diff file is missing, fetch the diff yourself:
     `git diff --stat [FIX_BASE_SHA]..[HEAD_SHA]` and
     `git diff [FIX_BASE_SHA]..[HEAD_SHA]`.
@@ -52,14 +56,22 @@ Subagent (general-purpose):
     verdict counts for nothing. If the diff feels too large for one
     pass, review it in passes yourself and say so in your report.
 
+    If your tooling reports your context past its threshold, write your
+    findings so far, the scope you checked and not, and reviewed_head into
+    your report and return HANDOFF; a partial report never approves.
+
     ## Scope
 
-    Your scope is the findings list and the fix diff. Verdict every finding.
-    Inspect the fix diff for new problems the fix itself introduced. Do NOT
-    re-review code the fix did not touch: if you notice an issue entirely
-    outside the fix diff, report it under Out-of-Scope Observations — it
-    does not block this task and does not extend the loop. A broad
-    whole-branch review happens after all tasks are complete.
+    Your scope is the findings list, the fix diff and what the fix reaches.
+    Verdict every finding. Inspect the fix diff for new problems the fix
+    itself introduced. Find the callers of every changed symbol yourself
+    (Grep) and check that the fix did not break them: new Critical/Important
+    breakage in a caller of a changed symbol is blocking and joins the open
+    findings. Do NOT re-review code unrelated to the fix: if you notice an
+    issue in untouched code that neither the fix diff nor a changed symbol
+    reaches, report it under Out-of-Scope Observations — it does not block
+    this task and does not extend the loop. A broad whole-branch review
+    happens after all tasks are complete.
 
     ## Tests
 
@@ -84,25 +96,26 @@ Subagent (general-purpose):
       evidence. "Attempted" is not addressed: the specific defect must no
       longer exist.
 
-    ### New Breakage in the Fix Diff
+    ### New Breakage in the Fix Diff or Its Callers
 
-    Anything the fix itself broke or introduced, with severity
+    Anything the fix itself broke or introduced, in the diff or in a caller
+    of a changed symbol (name the caller), with severity
     (Critical/Important/Minor) and file:line. "None" if clean.
 
     ### Out-of-Scope Observations
 
-    Issues you noticed entirely outside the fix diff. Non-blocking; the
+    Issues you noticed in untouched code unrelated to the fix. Non-blocking; the
     controller ledgers these for the final review. "None" if none.
 
     ### Verdict
 
     **Fix round:** [All findings addressed, no new Critical/Important
-    breakage | Findings remain open] — list the open ones.
+    breakage in the diff or its callers | Findings remain open] — list the open ones.
 ```
 
 **Placeholders:**
 - `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection; scoped
-  re-reviews of small fix diffs take a cheap-to-mid tier (your partner's model table first)
+  re-reviews use the same model as the review they re-check (your partner's model table first)
 - `[BRIEF_FILE]` — the task brief file (same file the implementer worked from);
   for a review group, one `Task N: brief <path>, report <path>` line per task
   the findings name (then `[REPORT_FILE]` is covered by those lines)
@@ -111,7 +124,9 @@ Subagent (general-purpose):
 - `[REPORT_FILE]` — the implementer's report file (fix reports appended)
 - `[FIX_BASE_SHA]` — the head the previous review saw
 - `[HEAD_SHA]` — current commit
-- `[DIFF_FILE]` — the path `bash scripts/review-package PLAN_FILE FIX_BASE HEAD` printed
+- `[DIFF_FILE]` — the path `bash scripts/review-package PLAN_FILE FIX_BASE HEAD` printed;
+  also list every file the fix touches and the task's test results on the fixed
+  revision in the dispatch
 
 **Re-reviewer returns:** per-finding verdicts (ADDRESSED / NOT ADDRESSED),
-new breakage in the fix diff, out-of-scope observations, and a round verdict.
+new breakage in the fix diff or its callers, out-of-scope observations, and a round verdict.

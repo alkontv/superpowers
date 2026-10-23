@@ -182,7 +182,7 @@ Confirm:
 
 **Other tests fail?** Fix now.
 
-**"Other tests" means the project's suite, not just your file.** (If the project's or user's instructions (CLAUDE.md or equivalent) define a verification policy — for example targeted tests per task and the full suite only at the end of a branch, or heavy suites run through a queue — follow that policy for when and how the full suite runs. It never relaxes the red-green cycle for your own change, and anything you did not run goes in your report as not run.) A
+**"Other tests" means the project's suite, not just your file.** (If the project's or user's instructions (CLAUDE.md or equivalent) define a verification policy — for example targeted tests per task and the full suite only at the end of a branch, or heavy suites run through a queue — follow that policy for when and how the full suite runs. It never relaxes the red-green cycle for your own change, and anything you did not run goes in your report as not run. Reuse valid evidence for the required revision, environment and scope; rerun when these differ.) A
 green run of the test you wrote is not a green suite. Before you call
 the change done, run the project's test command (bare `pytest`,
 `npm test`, `cargo test` — whatever the repo uses) even when your task

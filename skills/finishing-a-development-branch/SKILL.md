@@ -13,7 +13,7 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 ## Step 1: Verify Tests
 
-Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`) — through the project's own mechanism if its instructions define one (a queue for heavy runs, or a green CI run of the same script on the latest commit).
+Run the project's full test suite (`npm test` / `cargo test` / `pytest` / `go test ./...`) — through the project's own mechanism if its instructions define one (a queue for heavy runs, or a green CI run of the same script on the latest commit). Reuse valid evidence for the required revision, environment and scope; rerun when these differ.
 
 **If tests fail**, report the failures and stop — the menu comes after a green suite:
 

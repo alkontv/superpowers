@@ -60,6 +60,20 @@ Subagent (general-purpose):
     verdict counts for nothing. If the diff feels too large for one
     pass, review it in passes yourself and say so in your report.
 
+    If your tooling reports your context past its threshold, write your
+    findings so far, the scope you checked and not, and reviewed_head into
+    your report and return HANDOFF; a partial report never approves.
+
+    If the dispatch names an external review file, wait for it after your own
+    pass (bounded, up to 15 minutes): keep your turn open and wait in the
+    foreground in bounded steps; never end your turn only to wait. Check its
+    `revision:` first line against the head you review, confirm each finding
+    against the code before it enters your report, and report the outcome
+    under External review: `External: N confirmed, M rejected` (rejected ones
+    with the reason), `External: error …` if the run failed (name the error),
+    or `External: no result in 15 min`. Never run the external review
+    yourself unless the dispatch scopes you to the external fallback.
+
     ## What to Check
 
     **Plan alignment:**
@@ -127,6 +141,11 @@ Subagent (general-purpose):
 
     ### Recommendations
     [Improvements for code quality, architecture, or process]
+
+    ### External review
+    [Only when the dispatch names an external review file: the outcome line
+    (`External: N confirmed, M rejected` | `External: error …` |
+    `External: no result in 15 min`).]
 
     ### Assessment
 

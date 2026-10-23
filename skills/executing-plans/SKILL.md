@@ -251,7 +251,7 @@ pointer to the ledger's `Ruling:` lines so it can weigh the calls you
 made. Specify the model
 explicitly; an omitted model inherits the session's, which may not be the
 most capable. This is the one fresh context the whole run buys. Do not
-skip it, and do not replace it with your own read of the diff.
+skip it, and do not replace it with your own read of the diff. A HANDOFF report is partial and never approves: dispatch a fresh reviewer of the same model and effort for the unchecked scope with the earlier report; the last segment issues the verdict.
 When `alkontv-dev:reviewer` is an available agent type, dispatch the final reviewer as that type; the model and effort come from your partner's model table either way.
 
 **Without a subagent tool:** read code-reviewer.md and perform that review
