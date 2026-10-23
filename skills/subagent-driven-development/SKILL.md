@@ -197,7 +197,8 @@ the next dispatch or merge, not in a turn of their own.
   G<n> review` line are implemented — do not re-dispatch them either. First
   finish any group with `done, awaiting` tasks by the rules below, then
   resume at the first task with neither a `complete` nor a `done, awaiting`
-  line. A task whose last line is a fix round is mid-loop: resume the loop at
+  line. A task whose last line is a handoff (`Task <N>: handoff <k>, note
+  <path>`) resumes with `Task <N>: continue` and that note. A task whose last line is a fix round is mid-loop: resume the loop at
   the next round. A group whose last line is `Group G<n> … fix round <R>/3` is
   mid-loop: resume at round R+1 with FIX_BASE = that line's head commit. For
   a task or a group alike: a last fix-round line with 0 findings open means
@@ -212,6 +213,10 @@ the next dispatch or merge, not in a turn of their own.
   plan's progress: leave it in place and start your own, fresh.
 - Create the ledger with its identity as the first line:
   `# SDD ledger — plan: <plan file path>`.
+- If the partner's instructions name a stage journal, write its task, finding
+  and late-defect lines in the same turn as the ledger lines, import agent
+  and lead lines after each review group or standalone review, and copy the
+  journal with the evidence before the workspace is deleted.
 - The ledger is your recovery map: the commits it names exist in git even
   when your context no longer remembers creating them. After compaction,
   trust the ledger and `git log` over your own recollection.
@@ -252,7 +257,8 @@ implementation.
 
 ## Model Selection
 
-- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Risk:** line, task reviewers, re-reviewers and the final reviewer by their rows (a review group's reviewer and re-reviewers — the `normal` review row); never use a model their instructions forbid. The tiers below apply only when there is no such table.
+- **Your partner's model table comes first.** If their instructions contain a model table (role or task risk → model and effort), set `model` and `effort` explicitly on every dispatch from it: implementers and fix rounds by the task's **Kind:** line (**Risk:** for the review rows), task reviewers, re-reviewers and the final reviewer by their rows (a review group's reviewer and re-reviewers — the `normal` review row); never use a model their instructions forbid. The tiers below apply only when there is no such table.
+- **Routing by Kind:** when tasks carry `**Kind:**`, the partner's model table maps Kind to coder and effort and Risk to review strictness; a task without Kind gets one at dispatch, recorded in the ledger. The ledger records each task's executor model and effort.
 - **Agent types:** when `alkontv-dev:developer` and `alkontv-dev:reviewer` are available, dispatch implementers and fix rounds as `alkontv-dev:developer` and every reviewer (task, re-review, final) as `alkontv-dev:reviewer`: their narrow tool sets start with about half the context.
 - **Rulings reach the ledger:** before marking a task complete, copy every `Ruling:` line from the implementer's return or report file into the ledger, so "Rulings I made" at Finish includes them.
 
@@ -305,16 +311,21 @@ Everything you paste into a dispatch prompt — and everything a subagent
 prints back — stays resident in your context for the rest of the session
 and is re-read on every later turn. Hand artifacts over as files.
 
-**Waiting on dispatched subagents:** never poll a wait interface with
-short timeouts, and never sit in one silent, open-ended wait either.
-While you have local work — ledger updates, packaging the next review,
-reading reports — keep working; child results arrive on their own.
-When you are genuinely idle, wait in bounded stretches (five to ten
-minutes, where your platform allows), and between stretches post one
-line of status and reconcile your live children: list them, and chase
-any that finished without reporting. A bounded stretch keeps nearly
-all of a long wait's efficiency while guaranteeing a stuck or lost
-child is noticed within minutes, not at the end of the session.
+**Waiting on dispatched subagents:** child results, questions and blockers
+arrive on their own; answer questions and blockers at once. While you have
+local work — ledger updates, packaging the next review, reading reports —
+keep working. Do not wake yourself to post status or to wait: no timers, no
+background command whose only purpose is to wake you. Record each dispatch's
+expected duration in the ledger; on any wake-up, reconcile your live
+children — list them and chase any that finished without reporting, or that
+are past twice their expected duration. Platform-specific event waits (see
+the platform reference) still apply.
+
+**Lead context:** when the partner's tooling reports your context past its
+lead threshold, write every in-flight item (agent ids, background runs,
+pending external reviews with paths and SHAs, carries, rulings, next action)
+to the ledger, then tell the partner in one line that compaction is
+possible; do not wait for it.
 
 ### 1. Dispatch the implementer
 
@@ -367,9 +378,14 @@ start from it.
   Grep and line ranges, keep test output quiet, never `cat` whole logs, diffs
   or skill files, and never open snapshot PNGs unless the task is a visual
   check.
-- Name each dispatch `Task <N>: implementer|review|fix R<k>|re-review` or
-  `Final: review|fix|re-review` (a group: `Group G<n>: …`), so the spend can
-  be split by role later.
+- Every dispatch and every resume text starts with a name, so the spend can
+  be split by role later: `Task <id>: implementer|continue|fix R<k>|review|re-review`,
+  `Group G<n>: review|fix R<k>|re-review`, `Final: review|fix|re-review`,
+  `Plan: review R<k>|diagnosis`, and `Task <id>: spike` for a spike task
+  (`<id>` = digits plus an optional lowercase suffix: `5a`, `24b1`). Plan
+  reviews are dispatched by `writing-plans` with `Plan: review R<k>`. A resume
+  sent while the agent works arrives wrapped in the coordinator prefix; the
+  prefix is stripped before the name is matched.
 - Never dispatch two implementers into the same worktree. In parallel only
   across line worktrees (Setup, "Parallel lines"), one implementer per line.
 
@@ -377,13 +393,15 @@ Template: [implementer-prompt.md](implementer-prompt.md)
 
 ### 2. Handle the report
 
-Implementer subagents report one of four statuses. Handle each appropriately:
+Implementer subagents report one of five statuses. Handle each appropriately:
 
 **DONE:** Generate the review package (`bash scripts/review-package PLAN_FILE BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path. A task with a `**Review group:**` line is not reviewed alone: ledger `Task <N>: done, awaiting group G<n> review (commits <a7>..<b7>)` for every task of the group, the last one included, and keep its todo in progress until the group's completion lines are written. After the group's last task, the group review follows (step 3); otherwise dispatch the next task.
 
 **DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
 
-**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
+**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. A NEEDS_CONTEXT that reports a failed plan assumption or a missing contract goes to a diagnosis dispatch (`Plan: diagnosis`) on the partner's diagnosis row; it updates the contract and every dependent brief before any implementer resumes. Other NEEDS_CONTEXT: provide the context and re-dispatch.
+
+**HANDOFF:** when the partner's tooling reports an agent's context past its threshold, the agent returns HANDOFF with a handover note. Ledger `Task <N>: handoff <k>, note <path>`; dispatch a fresh agent of the same role, model and effort with the brief, the report file and the note, named `Task <N>: continue`; the task keeps its BASE and its fix-round count. A reviewer's handoff: the fresh reviewer gets the unchecked scope of the same package and revision, the earlier segments' report files and the external review path, if any; the last segment issues the verdict over the union.
 
 **BLOCKED:** The implementer cannot complete the task. Assess the blocker:
 1. If it's a context problem, provide more context and re-dispatch with the same model
@@ -491,14 +509,14 @@ scoped re-review. Three rounds maximum per task, or per review group:
 **Rounds 1-2 — resume the original implementer** (for a group: the
 implementer of each task the findings name, one at a time within a worktree;
 a finding that spans several tasks goes to ONE of them — the task whose code
-must change, else the later task). Send it the open findings verbatim. Its
-context is intact: it knows the task, the code, and its own choices. Only
+must change, else the later task). Send it the open findings verbatim, as a resume named
+`Task <N>: fix R<k>` (a group: `Group G<n>: fix R<k>`). Its context is intact: it knows the task, the code, and its own choices. Only
 when its context is over about 200k tokens dispatch a fresh implementer on
 the same model instead, with the brief path, the report-file path, the
 findings and a summary of at most ten lines (what the task delivered, what
 each finding asks, which files and tests it touches): past that size every
-turn of a resume re-reads the whole history (in a real stage a resume at
-282k cost $1.76, a fresh fixer $0.26–0.33). If your harness cannot send
+turn of a resume re-reads the whole history (in a real stage a late resume
+cost several times a fresh fixer). If your harness cannot send
 another message to a live subagent, dispatch a fresh implementer the same
 way — the report file is the persistent memory either way.
 
@@ -642,7 +660,8 @@ delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
 alone. Before deleting, always copy the ledger to the location your
 human partner's instructions or the project's check scripts use for logs
-(progress reports read it after the run), together with any file inside
+(progress reports read it after the run), together with the stage journal,
+if the partner's instructions name one, and any file inside
 the workspace that your final message or a report cites as verification
 evidence (test output, run logs), and update the cited paths; if there is
 no such location, keep the workspace and say so.

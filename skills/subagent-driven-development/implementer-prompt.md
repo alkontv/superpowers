@@ -154,7 +154,7 @@ Subagent (general-purpose):
 
     Then report back with ONLY (under 15 lines — the detail lives in the
     report file):
-    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT | HANDOFF
     - Commits created (short SHA + subject)
     - One-line test summary (e.g. "14/14 passing, output pristine")
     - Your concerns, if any
@@ -163,7 +163,18 @@ Subagent (general-purpose):
     If BLOCKED or NEEDS_CONTEXT, put the specifics in the final message
     itself — the controller acts on it directly.
 
+    If the controller's tooling reports your context past its threshold,
+    stop at a clean point, commit what is safe and return HANDOFF with a
+    handover note file (path in the final message): what is done (commits),
+    what remains, decisions and rulings so far, files and tests in play,
+    the next concrete step. A fresh agent continues from the brief, your
+    report file and the note.
+
     Use DONE_WITH_CONCERNS if you completed the work but have doubts about correctness.
     Use BLOCKED if you cannot complete the task. Use NEEDS_CONTEXT if you need
     information that wasn't provided. Never silently produce work you're unsure about.
+
+    When you wait for a long run, keep your turn open: run it in the
+    background with an exit marker and wait in the foreground in bounded
+    steps; never end your turn only to wait.
 ```
