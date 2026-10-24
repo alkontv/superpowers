@@ -457,12 +457,13 @@ needed.
   the reviewer's dispatch (`External review: <path>`). Seats follow your
   partner's instructions; none at task or final re-reviews. Ledger every
   pending external review (path, SHA) and close the line when its result is
-  confirmed. If the reviewer reports `External: error …` — a usage-limit
-  error, or a second failure after one retry of the external review on the
-  same revision — dispatch a fresh confirmer of the reviewer's model
-  (`Task <N>: review`, scope: external fallback; `Group G<n>: review` or `Final: review` for those seats) that runs your partner's
-  fallback model itself on the package, writes its answer to the same path
-  with the same first line, and confirms it. If the reviewer reports `no
+  confirmed. If the reviewer reports `External: error …`, retry the external
+  review once on the same revision, unless the error says the external
+  model's quota is exhausted. If it still cannot run, follow your partner's
+  instructions for a required external review that cannot run; without them
+  the seat stays open in the ledger until the external review runs on that
+  revision after the quota resets, or your partner waives it. A file that
+  arrives from such a rerun is confirmed like a late one. If the reviewer reports `no
   result in 15 min` and the file arrives later, dispatch a fresh confirmer of
   the reviewer's model (`Task <N>: review`, scope: confirm that file's
   findings against the same revision). A late confirmer is a fresh agent of the
