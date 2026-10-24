@@ -72,7 +72,7 @@ Subagent (general-purpose):
     under External review: `External: N confirmed, M rejected` (rejected ones
     with the reason), `External: error …` if the run failed (name the error),
     or `External: no result in 15 min`. Never run the external review
-    yourself unless the dispatch scopes you to the external fallback.
+    yourself.
 
     ## What to Check
 
